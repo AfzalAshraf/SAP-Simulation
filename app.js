@@ -72,13 +72,13 @@ function today(){ return '11/10/2026'; }
    Each step: title, desc, instruction, body(), autofill{}, primary? */
 /* ---- layout wrappers: SAP group boxes in GUI mode, cards in Fiori ---- */
 function fgOpen(){
-  return state.mode==='gui' ? '<fieldset class="ggroup"><legend>Data</legend><div class="gfields">' : '<div class="form-grid">';
+  return state.mode==='gui' ? '<fieldset class="g-group"><legend>Data</legend><div class="g-fields">' : '<div class="form-grid">';
 }
 function fgEnd(){ return '</div>'; }               // both modes close with a div
 function gtOpen(){
-  return state.mode==='gui' ? '<div class="ggrid">' : '<div class="grid-table">';
+  return state.mode==='gui' ? '<div class="g-gridwrap">' : '<div class="grid-table">';
 }
-function totalOpen(){ return state.mode==='gui' ? '<div class="gtotal">' : '<div class="total-row">'; }
+function totalOpen(){ return state.mode==='gui' ? '<div class="g-total">' : '<div class="total-row">'; }
 
 function fld(label,id,value,hint,req){
   if(state.mode==='gui') return gf(label,id,{value:value||'',hint:hint,req});
@@ -193,7 +193,7 @@ fb50:{
     {title:'Line Item Entry — Double Entry', desc:'Debit Electricity Expense / Credit Petty Cash', instruction:'Enter both lines. The <b>traffic-light balance</b> must show <b>0.00</b> before posting. Try changing an amount to see it turn red.',
      body:()=>`<div id="fbBalance" class="balance-box ok"><span class="traffic green" id="fbTraffic"></span><span>Balance:</span><b id="fbBalVal">0.00 USD</b><span id="fbBalMsg">🟢 Debit equals Credit — ready to post.</span></div>
        ${gtOpen()}<table><thead><tr><th>Line</th><th>G/L Account *</th><th>Short Text *</th><th>D/C</th><th>Amount (Doc. Curr.) *</th><th>Cost Center</th></tr></thead><tbody>
-       <tr><td class="ro">1</td><td><input id="fb1_acct" class="req-field" placeholder="400000" oninput="updateFBBalance()"></td><td><input id="fb1_text" class="req-field" placeholder="Electricity Expense"></td>
+       <tr><td class="ro">1</td><td><input id="fb1_acct" class="g-cell req-field" placeholder="400000" oninput="updateFBBalance()"></td><td><input id="fb1_text" class="req-field" placeholder="Electricity Expense"></td>
        <td><select id="fb1_dc" onchange="updateFBBalance()"><option value="D">Debit</option><option value="C">Credit</option></select></td>
        <td><input id="fb1_amt" class="req-field" type="number" placeholder="450.00" oninput="updateFBBalance()"></td><td><input id="fb1_cc" placeholder="CC-ADMIN"></td></tr>
        <tr><td class="ro">2</td><td><input id="fb2_acct" class="req-field" placeholder="113100" oninput="updateFBBalance()"></td><td><input id="fb2_text" class="req-field" placeholder="Petty Cash Account"></td>
@@ -484,29 +484,29 @@ function toast(msg,type){
   w.appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(()=>t.remove(),400); },4200);
 }
 function setStatus(msg,type){
-  state.status={msg,type:type||'ok'}; renderStatusBar();
+  state.status={msg: state.mode==='gui' ? sapText(stripEmoji(msg)) : msg, type:type||'ok'};
+  renderStatusBar();
 }
 /* status bar text only — cheap path used by the clock */
+function guiClock(){
+  const n=new Date(), p=v=>String(v).padStart(2,'0');
+  return p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
+}
 function refreshStatusClock(){
   if(state.mode!=='gui') return;
-  const el=$('statusBar'); if(!el) return;
-  const cells=el.querySelectorAll('.gsb-c');
-  const last=cells[cells.length-2];
-  if(!last) return;
-  const now=new Date();
-  last.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+  const el=$('stClock'); if(el) el.textContent=guiClock();
 }
 function renderStatusBar(){
   const el=$('statusBar'); if(!el) return;
   if(state.mode==='gui'){
-    const ico = state.status.type==='err' ? '🔴' : state.status.type==='info' ? '🔵' : '🟢';
-    const now=new Date();
-    const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
-    el.className='gui-statusbar';
-    el.innerHTML=`<span class="gsb-sys">${ico}</span><span class="gsb-msg" id="statusMsg">${esc(state.status.msg)}</span>
-      <span class="gsb-spacer"></span>
-      <span class="gsb-c">PRD (1)</span><span class="gsb-c">100</span><span class="gsb-c">EN</span>
-      <span class="gsb-c">${hm}</span><span class="gsb-c gsb-user">ENTERPRISE_USER</span>`;
+    el.className='g-status';
+    const cls = state.status.type==='err' ? 'err' : state.status.type==='info' ? 'info' : 'ok';
+    el.innerHTML=`<span class="st-ico ${cls}"></span>
+      <span class="st-msg" id="statusMsg">${esc(sapText(stripEmoji(state.status.msg)))}</span>
+      <span class="st-cell">PRD (1)</span><span class="st-cell">100</span>
+      <span class="st-cell hide-s">EN</span>
+      <span class="st-cell hide-s" id="stClock">${guiClock()}</span>
+      <span class="st-cell st-user">ENTERPRISE_USER</span>`;
     return;
   }
   const dot = state.status.type==='err'?'err':state.status.type==='info'?'info':'';
@@ -518,7 +518,9 @@ function showSys(type,html){
   const el=$('sysResponse'); if(!el) return;
   if(el.classList.contains('gsys')){
     el.className='gsys gsys-'+type;
-    el.innerHTML=`<span class="gmsg-ico">${type==='err'?'🔴':type==='info'?'🔵':'🟢'}</span> <span>${html}</span>`;
+    el.innerHTML=plain(html);
+    const ico=$('sysIco');
+    if(ico) ico.className='g-msgico '+(type==='ok'?'ok':type==='err'?'err':'info');
     return;
   }
   el.className='sys-response show '+type; el.innerHTML=html;
@@ -583,13 +585,15 @@ function fbCalc(){
   return d-c;
 }
 function updateFBBalance(){
-  const bal=fbCalc(), ok=Math.abs(bal)<0.005;
+  const bal=fbCalc(), ok=Math.abs(bal)<0.005, gui=(state.mode==='gui');
   [['fbBalance','fbTraffic','fbBalVal','fbBalMsg'],['fbBalance2','fbTraffic2','fbBalVal2','fbBalMsg2']].forEach(([box,tr,val,msg])=>{
     const b=$(box); if(!b) return;
     b.className='balance-box '+(ok?'ok':'bad');
     $(tr).className='traffic '+(ok?'green':'red');
     $(val).textContent=fmt(Math.abs(bal))+' USD';
-    $(msg).textContent= ok?'🟢 Debit equals Credit — ready to post.':`🔴 Out of balance by ${fmt(Math.abs(bal))} — Debit must equal Credit.`;
+    $(msg).textContent = gui
+      ? (ok ? 'Debit equals credit - document is balanced.' : `Out of balance by ${fmt(Math.abs(bal))} USD - debit must equal credit.`)
+      : (ok ? '🟢 Debit equals Credit — ready to post.' : `🔴 Out of balance by ${fmt(Math.abs(bal))} — Debit must equal Credit.`);
   });
 }
 function updateSESTotal(){
@@ -846,6 +850,7 @@ function render(){
   renderStatusBar();
   restoreForm();
   updateClock();
+  if(state.mode==='gui') normalizeGuiText();
   // finished scenarios show a green success view — make sure the status bar reflects it
   if(state.view==='sim' && state.completed && state.docNumber){
     const sc=SCENARIOS[state.scenarioId];
@@ -934,398 +939,408 @@ function renderSidebar(){
 }
 function renderStatusBarHTML(){ return `<div class="statusbar" id="statusBar"></div>`; }
 
-/* ================= SAP GUI FOR WINDOWS DESKTOP ================= */
-/* Everything from the Windows window chrome down to the SAP status bar. */
-
-const GUI_MENU = [
-  ['SAP Easy Access', goHome],
-  ['SAP Business Workplace', ()=>toast('🖥️ SAP Business Workplace — no messages','info')],
-  ['Functional area', ()=>toast('🖥️ Functional area: Logistics / Accounting','info')],
-  ['Quick links', ()=>toast('🖥️ Quick links: ME21N · VA01 · FB50','info')],
-  ['Refresh', ()=>render()],
-  ['Exit', goHome],
-];
-
-function shellMenuItems(items){
-  return items.map(([label, fn],i)=>{
-    const slot='__menu'+i;
-    (window.__menuFns=window.__menuFns||{})[slot]=fn;
-    return `<button class="gmenu-item" onclick="runMenu('${slot}')">${esc(label)}</button>`;
-  }).join('');
+/* Replace typographic characters with the plain ASCII SAP client uses */
+function normalizeGuiText(){
+  const root=document.querySelector('.g-frame');
+  if(!root) return;
+  const map={'\u2014':'-','\u2013':'-','\u2012':'-','\u2015':'-','\u2022':'-','\u00B7':'-',
+             '\u2192':'->','\u2190':'<-','\u2018':"'",'\u2019':"'",'\u201C':'"','\u201D':'"',
+             '\u2026':'...','\u00A0':' '};
+  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,null);
+  const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(n=>{
+    let v=n.nodeValue, out='';
+    for(const ch of v){ out += (map[ch]!==undefined? map[ch] : ch); }
+    if(out!==v) n.nodeValue=out;
+  });
 }
-function runMenu(slot){
-  const fn=(window.__menuFns||{})[slot];
-  if(typeof fn==='function') fn();
+function renderGuiShellCompat(){}
+
+/* ================= SAP GUI FOR WINDOWS (ECC) =================
+   Faithful classic SAP GUI: flat grey screens, 11px Arial, 3-D bevels,
+   monochrome icon toolbar, status bar. No emoji, no rounded corners,
+   no shadows, no gradients except the window title bar. */
+
+/* ---------- tiny monochrome icon set (inline SVG, 16x16) ---------- */
+const ICO = {
+  enter:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M2 8h8M7 4l4 4-4 4" fill="none" stroke="#0b6b2f" stroke-width="1.6" stroke-linecap="square"/><path d="M11 2h3v12h-3" fill="none" stroke="#0b6b2f" stroke-width="1.2"/></svg>',
+  back:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M13 8H5M9 4L5 8l4 4" fill="none" stroke="#333" stroke-width="1.5"/><path d="M3 3v10" stroke="#333" stroke-width="1.2"/></svg>',
+  exit:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 8h8M7 4l4 4-4 4" fill="none" stroke="#333" stroke-width="1.5"/><path d="M13 3v10" stroke="#333" stroke-width="1.2"/></svg>',
+  cancel:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M4 4l8 8M12 4l-8 8" stroke="#8a1c1c" stroke-width="1.7"/></svg>',
+  print:'<svg viewBox="0 0 16 16" width="16" height="16"><rect x="3.5" y="2.5" width="9" height="4" fill="#fff" stroke="#333"/><rect x="1.5" y="6.5" width="13" height="5" fill="#e8e8e8" stroke="#333"/><rect x="4.5" y="9.5" width="7" height="4" fill="#fff" stroke="#333"/></svg>',
+  find:'<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="6.5" cy="6.5" r="4" fill="none" stroke="#333" stroke-width="1.5"/><path d="M9.5 9.5L14 14" stroke="#333" stroke-width="1.8"/></svg>',
+  save:'<svg viewBox="0 0 16 16" width="16" height="16"><rect x="2.5" y="2.5" width="11" height="11" fill="#dcdcdc" stroke="#333"/><rect x="5" y="2.5" width="6" height="4" fill="#fff" stroke="#333"/><rect x="4.5" y="8.5" width="7" height="5" fill="#fff" stroke="#333"/></svg>',
+  folder:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M1.5 4h5l1.2 1.6H14.5v7.4h-13z" fill="#f5d76e" stroke="#8a6d1f" stroke-width="1"/></svg>',
+  folderOpen:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M1.5 4h5l1.2 1.6h6.3v2H10L8.6 14H1.5z" fill="#f5d76e" stroke="#8a6d1f" stroke-width="1"/><path d="M4 7.6h11L13.2 14H2z" fill="#fff3b0" stroke="#8a6d1f" stroke-width="1"/></svg>',
+  leaf:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 1.5h6l4 4v9H3z" fill="#fff" stroke="#555" stroke-width="1"/><path d="M9 1.5v4h4" fill="none" stroke="#555" stroke-width="1"/><path d="M5 8h6M5 10h6M5 12h4" stroke="#9aa5b1" stroke-width="1"/></svg>',
+  star:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M8 2l1.8 3.8 4.2.5-3 3 .8 4.2L8 11.6 4.2 13.5 5 9.3l-3-3 4.2-.5z" fill="#f0c040" stroke="#7a5c00" stroke-width=".9"/></svg>',
+  help:'<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#316ac5" stroke="#1a3e78"/><text x="8" y="11.4" font-size="9" font-family="Arial" font-weight="bold" text-anchor="middle" fill="#fff">?</text></svg>',
+  clock:'<svg viewBox="0 0 16 16" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#fff" stroke="#333"/><path d="M8 4.5V8l2.5 1.5" fill="none" stroke="#333" stroke-width="1.3"/></svg>',
+  exec:'<svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l9 5-9 5z" fill="#0b6b2f"/></svg>',
+  check:'<svg viewBox="0 0 16 16" width="14" height="14"><path d="M2.5 8.5l3.5 3.5 7.5-8" fill="none" stroke="#0b6b2f" stroke-width="2"/></svg>',
+  sep:'<span class="g-sep"></span>',
+};
+function ico(n){ return ICO[n]||''; }
+
+/* ---------- top-level window ---------- */
+function guiMenuBar(screenName, menus){
+  const m = menus || ['Edit','Goto','System','Help'];
+  return `<div class="g-menubar">
+    <span class="g-menu-title">${esc(screenName)}</span>
+    ${m.map(x=>`<button class="g-menu" onclick="guiMenu('${esc(x)}')">${esc(x)}</button>`).join('')}
+  </div>`;
+}
+function guiMenu(name){
+  const map={
+    Edit:'Edit: Cut / Copy / Paste / Select all (simulated)',
+    Goto:'Goto: Back (F3) · Exit (Shift+F3) · Cancel (F12)',
+    System:'System: Status · List · Services · User profile',
+    Help:'Help: SAP Library · Release notes · About this simulation',
+    Favorites:'Favorites: the 6 pinned transactions are in the tree',
+    Extras:'Extras: Settings · Administration',
+    Window:'Window: Cascade · Tile',
+  };
+  setStatus(map[name]||name,'info');
 }
 
-/* Classic SAP GUI icon toolbar button: icon + tiny label underneath */
-function guiBtn(icon, label, onclick, opts){
+function guiToolbar(opts){
   const o=opts||{};
-  return `<button class="gtb-btn ${o.cls||''}" onclick="${onclick}" ${o.disabled?'disabled':''} title="${esc(o.title||label)}">
-    <span class="gtb-ico">${icon}</span><span class="gtb-lbl">${esc(label)}</span></button>`;
-}
-
-function renderGuiShell(inner, opts){
-  const o=opts||{};
-  const pic=o.picture||{icon:'🖥️', line1:'SAP Easy Access', line2:'SAP Easy Access Menu'};
-  const title=o.windowTitle||'SAP Easy Access';
-  const transaction=o.transaction||null;
-  const menus = o.menus || GUI_MENU;
-  return `
-  <div class="sapdesktop" data-mode="gui">
-    <div class="sapwin">
-      <div class="sapwin-title">
-        <span class="swt-ico">🪟</span>
-        <span class="swt-text">${esc(title)}</span>
-        <span class="swt-ctrl"><span>—</span><span>▢</span><span class="x">✕</span></span>
-      </div>
-
-      <div class="sapmenubar">${shellMenuItems(menus)}<span class="spacer"></span><span class="gmenu-conn">PRD (1) 100 · ENTERPRISE_USER</span></div>
-
-      <div class="saptoolbar">
-        <div class="gtb-group">
-          ${guiBtn('⬅','Back','guiBack()',{title:'Back (F3)'})}
-          ${guiBtn('➡','Exit','guiExit()',{title:'Exit (Shift+F3)'})}
-          ${guiBtn('🚪','Log off','guiLogoff()',{title:'Log off'})}
-          ${guiBtn('🚩','Print','guiPrint()',{title:'Print (Ctrl+P)'})}
-          ${guiBtn('🔎','Find','guiFind()',{title:'Find'})}
-          ${guiBtn('⌚','Clock','toast(\'🕐 Local time — system time is shown in the status bar\',\'info\')',{title:'Time'})}
-        </div>
-        <div class="gtb-sep"></div>
-        ${transaction
-          ? `<div class="gtb-group">${guiBtn('📄','Enter','nextStep()',{cls:'primary',title:'Enter / Next step'})}
-             ${guiBtn('💡','Tip','toggleGuiTip()',{title:'Show / hide the guided tip'})}</div>`
-          : `<div class="gtb-group">${guiBtn('⊕','Create','guiHint()',{title:'Create'})}
-             ${guiBtn('📂','Open','guiHint()')}
-             ${guiBtn('💾','Save','guiHint()')}</div>`}
-        <span class="spacer"></span>
-        <div class="gtb-group">
-          ${guiBtn('🖥️ SAP GUI','','',{cls:'mode',title:'You are in SAP GUI (ECC)'})}
-          ${guiBtn('✨','Fiori','setMode(\'fiori\')',{cls:'mode-flip',title:'Switch to Fiori (S/4HANA) — 1 click'})}
-        </div>
-      </div>
-
-      <div class="sapwin-screen">
-        <div class="gcmdbar">
-          <span class="gcmd-ico">▸</span>
-          <div class="gcmd-box"><input id="cmdInput" placeholder="${transaction?esc(transaction.parent)+' · '+esc(transaction.tcode):'Transaction code'}" value="${transaction?esc(transaction.tcode):''}" onkeydown="if(event.key==='Enter')cmdGo()" autocomplete="off" spellcheck="false"></div>
-          <button class="gcmd-go" onclick="cmdGo()" title="Enter">⏎</button>
-          <span class="gcmd-spacer"></span>
-          <span class="gcmd-sys">PRD (1) 100 · ${o.production===false?'Development':'Production'}</span>
-        </div>
-        <div class="gscreen-body" id="gscreenBody">
-          ${inner}
-        </div>
-      </div>
-
-      <div class="gui-statusbar" id="statusBar"></div>
-    </div>
-    <div class="gui-hintline">🖥️ SAP GUI for Windows (ECC) · Client 100 · PRD — a faithful simulation, not a real SAP system. Switch to <b>✨ Fiori</b> any time with the toolbar button (top right).</div>
+  const b=(icon,title,onclick,cls)=>`<button class="g-tb ${cls||''}" title="${esc(title)}" onclick="${onclick}">${ico(icon)}</button>`;
+  return `<div class="g-toolbar">
+    ${o.enter?`<button class="g-tb" title="Enter" onclick="${o.enter}">${ico('enter')}</button>`:''}
+    ${b('back','Back (F3)','guiBack()')}
+    ${b('exit','Exit (Shift+F3)','guiExit()')}
+    ${b('cancel','Cancel (F12)','guiExit()')}
+    ${b('print','Print (Ctrl+P)','guiPrint()')}
+    ${b('find','Find (Ctrl+F)','guiFind()')}
+    ${b('save','Save (Ctrl+S)','guiSaveShortcut()')}
+    ${ico('sep')}
+    ${b('exec','Execute (F8)','guiExecute()')}
+    <span class="g-tb-spacer"></span>
+    ${o.mode!==false?`<button class="g-tb g-tb-flip" title="Switch to Fiori (S/4HANA)" onclick="setMode('fiori')"><span class="g-flip-txt">FIORI</span></button>`:''}
+    <button class="g-tb" title="Help" onclick="guiMenu('Help')">${ico('help')}</button>
   </div>`;
 }
 
-/* Standard SAP screen title row */
-function guiTitle(t){
-  return `<table class="gtitle"><tbody><tr>
-    <td class="gtitle-l">${esc(t.line1||'')}</td>
-    <td class="gtitle-r">${esc(t.line2||'')}</td></tr></tbody></table>`;
-}
-/* Transaction title: "Create Purchase Order" */
-function guiTcodeTitle(tcode, name){
-  return `<table class="gtitle"><tbody><tr>
-    <td class="gtitle-l">${esc(name)}</td>
-    <td class="gtitle-r"><b>${esc(tcode)}</b></td></tr></tbody></table>`;
-}
-
-/* Screen wrapper: title + optional tabstrip + body */
-function guiScreen(inner, t){
-  return `<div class="gscreen">
-    ${t ? guiTitle(t) : ''}
-    ${inner}
+function guiCmdBar(tcode){
+  return `<div class="g-cmdrow">
+    <span class="g-cmd-arrow">▸</span>
+    <input id="cmdInput" class="g-cmd" value="${esc(tcode||'')}" placeholder="Transaction code" onkeydown="if(event.key==='Enter')cmdGo()" autocomplete="off" spellcheck="false">
+    <button class="g-cmd-enter" title="Enter" onclick="cmdGo()">${ico('enter')}</button>
+    <span class="g-cmd-spacer"></span>
   </div>`;
 }
 
-/* Tabstrip (like "Item Overview | Header | ...") */
-function guiTabs(tabs, activeIdx){
-  return `<div class="gtabs">${tabs.map((t,i)=>
-    `<span class="gtab ${i===activeIdx?'active':''}" onclick="${t.onclick||'void 0'}">${esc(t.label||t)}</span>`).join('')}</div>`;
+/* screen title line: bold dark-blue text, thin rule, T-code right */
+function guiScreenTitle(t){
+  return `<div class="g-titleline"><span class="g-title-l">${esc(sapText(t.line1||''))}</span>
+    <span class="g-title-spacer"></span>
+    <span class="g-title-r">${esc(sapText(t.line2||''))}</span></div>`;
 }
 
-/* Field legend box — the classic SAP "group box" with a titled frame */
-function guiGroup(title, inner, cols){
-  return `<fieldset class="ggroup"><legend>${esc(title)}</legend>
-    <div class="gfields ${cols?('cols'+cols):''}">${inner}</div></fieldset>`;
+/* tabstrip: square tabs, active = white */
+function guiTabs(tabs, active){
+  return `<div class="g-tabs">${tabs.map((t,i)=>
+    `<span class="g-tab ${i===active?'on':''}">${esc(t.label||t)}</span>`).join('')}</div>`;
 }
 
-/* SAP input: label left, input right (label box 210px) */
+/* framed group box */
+function guiGroup(title, inner, opts){
+  const o=opts||{};
+  return `<fieldset class="g-group ${o.cls||''}"><legend>${esc(title||'')}</legend>${inner}</fieldset>`;
+}
+
+/* label + input row (label right-aligned in a fixed column, as in SAP) */
 function gf(label, id, opts){
   const o=opts||{};
-  const val=o.value!=null?o.value:'';
-  const req=o.req;
-  return `<div class="gf ${req?'gf-req':''}">
-    <label class="gf-l" for="${id}">${esc(label)}${req?'<span class="gf-asterix">*</span>':''}</label>
-    <span class="gf-c">
-      <input id="${id}" class="gf-i ${req?'req-field':''}" value="${esc(val)}" ${o.type?`type="${o.type}"`:''} ${o.placeholder?`placeholder="${esc(o.placeholder)}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} autocomplete="off">
-      ${o.unit?`<span class="gf-unit">${esc(o.unit)}</span>`:''}
-      ${o.hint?`<span class="gf-hint">${o.hint}</span>`:''}
+  const val=(o.value==null?'':o.value);
+  return `<div class="g-row">
+    <label class="g-lab" for="${id}">${esc(label)}${o.req?'<span class="g-req">*</span>':''}</label>
+    <span class="g-ctl">
+      <input id="${id}" class="g-inp ${o.req?'req-field':''}" value="${esc(val)}" ${o.type?`type="${o.type}"`:''} ${o.placeholder?`placeholder="${esc(o.placeholder)}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} ${o.size?`size="${o.size}"`:''} autocomplete="off">
+      ${o.unit?`<span class="g-unit">${esc(o.unit)}</span>`:''}
     </span></div>`;
 }
 function gfSel(label, id, options, opts){
   const o=opts||{};
-  const optsHTML=options.map(x=>`<option value="${esc(x[0])}" ${String(x[0])===String(o.value)?'selected':''}>${esc(x[1])}</option>`).join('');
-  return `<div class="gf ${o.req?'gf-req':''}">
-    <label class="gf-l" for="${id}">${esc(label)}${o.req?'<span class="gf-asterix">*</span>':''}</label>
-    <span class="gf-c"><select id="${id}" class="gf-i ${o.req?'req-field':''}">${optsHTML}</select>
-    ${o.hint?`<span class="gf-hint">${o.hint}</span>`:''}</span></div>`;
+  const html=options.map(x=>`<option value="${esc(x[0])}" ${String(x[0])===String(o.value)?'selected':''}>${esc(x[1])}</option>`).join('');
+  return `<div class="g-row">
+    <label class="g-lab" for="${id}">${esc(label)}${o.req?'<span class="g-req">*</span>':''}</label>
+    <span class="g-ctl"><select id="${id}" class="g-inp g-sel ${o.req?'req-field':''}">${html}</select></span></div>`;
 }
-/* Read-only display field */
 function gfRO(label, value){
-  return `<div class="gf"><span class="gf-l">${esc(label)}</span><span class="gf-c"><span class="gf-ro">${esc(value)}</span></span></div>`;
+  return `<div class="g-row"><span class="g-lab">${esc(label)}</span><span class="g-ctl"><span class="g-ro">${esc(value)}</span></span></div>`;
 }
 
-/* Classic SAP grid (ALV-ish) with header bar */
+/* SAP table / ALV grid */
 function guiGrid(headers, rows, opts){
   const o=opts||{};
-  return `<div class="ggrid ${o.scroll?'scroll':''}"><table>
-    <thead><tr>${headers.map(h=>`<th ${h.w?`style="width:${h.w}"`:''}>${esc(h.label!=null?h.label:h)}</th>`).join('')}</tr></thead>
+  return `<div class="g-gridwrap"><table class="g-grid">
+    <thead><tr>${headers.map(h=>`<th>${esc(h.label!=null?h.label:h)}</th>`).join('')}</tr></thead>
     <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c==null?'':c}</td>`).join('')}</tr>`).join('')}</tbody>
   </table></div>`;
 }
-/* Editable SAP grid cell */
 function gcell(id, opts){
   const o=opts||{};
-  return `<input id="${id}" class="ggrid-i ${o.req?'req-field':''}" value="${esc(o.value!=null?o.value:'')}" ${o.type?`type="${o.type}"`:''} ${o.placeholder?`placeholder="${esc(o.placeholder)}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} ${o.ro?'readonly':''}>`;
+  return `<input id="${id}" class="g-cell ${o.req?'req-field':''}" value="${esc(o.value!=null?o.value:'')}" ${o.type?`type="${o.type}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} ${o.ro?'readonly':''}>`;
 }
 
-/* Bottom-of-screen message line, like SAP's "No messages issued" row */
+/* screen message line (where SAP shows its messages) */
 function guiMessages(){
-  return `<div class="gmsgrow"><span class="gmsg-dot"></span><span id="sysResponse" class="gsys">No messages issued during check.</span></div>`;
+  return `<div class="g-msgline"><span class="g-msgico" id="sysIco"></span><span id="sysResponse" class="gsys"></span></div>`;
 }
 
-/* F4 value-help hint (the little yellow box) */
-function guiHint(text){
-  return `<div class="gvaluehelp">💡 ${text}</div>`;
+/* strip pictographic emoji from anything rendered inside the SAP window */
+function stripEmoji(s){
+  return String(s)
+    .replace(/[\u{1F000}-\u{1FAFF}]/gu,'')
+    .replace(/[\u{2600}-\u{27BF}]/gu,'')
+    .replace(/[\u{2190}-\u{21FF}]/gu,'')
+    .replace(/[\u{2B00}-\u{2BFF}]/gu,'')
+    .replace(/\u{FE0F}/gu,'')
+    .replace(/[ \t]{2,}/g,' ');
 }
-function toggleGuiTip(){
-  const el=$('guiTip'); if(el) el.classList.toggle('hidden');
+function sapText(s){
+  return plain(String(s))
+    .replace(/[\u2014\u2013]/g,'-')
+    .replace(/[\u2018\u2019]/g,"'")
+    .replace(/[\u201C\u201D]/g,'"')
+    .replace(/\u00B7/g,'-')
+    .replace(/\s{2,}/g,' ')
+    .trim();
 }
-function guiBack(){
-  if(state.view!=='sim'){ toast('🖥️ You are already at SAP Easy Access','info'); return; }
-  if(state.step>0) goStep(state.step-1);
-  else goHome();
+function plain(s){
+  return String(s).replace(/[\u{1F000}-\u{1FAFF}\u{2190}-\u{21FF}\u{2B00}-\u{2BFF}\u{FE0F}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{27BF}]/gu,'')
+    .replace(/\s{2,}/g,' ').trim();
 }
-function guiExit(){
-  if(state.view==='sim'){ setStatus('Transaction closed — back at SAP Easy Access.','info'); goHome(); }
-  else goHome();
-}
-function guiLogoff(){ goHome(); setStatus('Logoff from system PRD — you are back at SAP Easy Access.','info'); toast('🚪 Logged off (simulated)','info'); }
-function guiPrint(){ toast('🖨️ Print dialog — output device LOCL (spool 100234)','info'); setStatus('Print: output device LOCL selected.','info'); }
-function guiFind(){ if($('cmdInput')){ $('cmdInput').focus(); $('cmdInput').select(); } toast('🔎 Find — type a T-Code or app name','info'); }
 
-/* ---- SAP Easy Access (GUI home) ---- */
+/* ---------- SAP Easy Access (home) ---------- */
 function renderGuiHome(){
-  const is=(id)=>state.view==='sim'&&state.scenarioId===id;
-  const node=(label,tcode,sim,indent,opened)=>{
+  const leaf=(label,tcode,sim,level)=>{
     const st=sim?simStatus(sim):null;
-    const mark = st && st.cls==='done' ? ' <span class="gtree-ok">✔</span>' : '';
-    return `<div class="gtree-node l${indent} ${sim&&is(sim)?'active':''}" onclick="startScenario('${sim}')">
-      ${opened?'<span class="gtree-arrow">⊟</span>':'<span class="gtree-arrow">⊞</span>'}
-      <span class="gtree-ico">${opened?'📂':'📄'}</span>
-      <span class="gtree-lab">${esc(label)}</span>${mark}
-      ${tcode?`<span class="gtree-tc">${esc(tcode)}</span>`:''}</div>`;
+    return `<div class="g-tree-row lv${level} ${sim&&state.view==='sim'&&state.scenarioId===sim?'sel':''}" onclick="startScenario('${sim}')">
+      <span class="g-tree-tw">${level<3?'−':'&nbsp;'}</span>
+      ${sim?ico('leaf'):ico('folder')}
+      <span class="g-tree-txt">${esc(label)}</span>
+      ${tcode?`<span class="g-tree-tc">${esc(tcode)}</span>`:''}
+      ${st&&st.cls==='done'?'<span class="g-tree-done">'+ico('check')+'</span>':''}
+    </div>`;
   };
-  const favRows = FAVORITES.map(f=>{
-    const st=simStatus(f.id);
-    return `<tr onclick="startScenario('${f.id}')" class="grow-link">
-      <td class="gtd-fav">${f.starred?'★ ':''}${esc(f.name)}</td>
-      <td class="gtd-tc">${f.tcode}</td>
-      <td class="gtd-st">${st.cls==='done'?'<span class="gtree-ok">✔ saved</span>':esc(st.label)}</td></tr>`;
-  }).join('');
+  const branch=(label,level,open)=>`<div class="g-tree-row lv${level} ${open?'open':''}" onclick="guiToggleTree(this)">
+      <span class="g-tree-tw">${open?'−':'+'}</span>${ico(open?'folderOpen':'folder')}<span class="g-tree-txt">${esc(label)}</span></div>`;
 
-  const tree = `
-  <div class="geasy-access">
-    <div class="gtree-head"><span>📂</span> <b>SAP Easy Access</b><span class="gtree-spacer"></span><span class="gtree-fav">★ ${FAVORITES.length}</span></div>
-    <div class="gtree">
-      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Favorites</b></span></div>
-      ${FAVORITES.map(f=>`<div class="gtree-node l1" onclick="startScenario('${f.id}')"><span class="gtree-arrow">└</span><span class="gtree-ico">⭐</span><span class="gtree-lab">${f.starred?'★ ':''}${esc(f.name)}</span><span class="gtree-tc">${f.tcode}</span></div>`).join('')}
-      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Logistics</b></span></div>
-      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Materials Management</span></div>
-      <div class="gtree-node l2" onclick="startScenario('me21n')"><span class="gtree-arrow">└</span><span class="gtree-ico">📄</span><span class="gtree-lab">Purchasing</span><span class="gtree-tc">MM</span></div>
-      ${node('Create Purchase Order','ME21N','me21n',3)}
-      ${node('Display Purchase Order','ME23N','me23n',3)}
-      ${node('Create Purchase Requisition','ME51N','me51n',3)}
-      ${node('Display Purchase Requisition','ME53N','me53n',3)}
-      ${node('Service Entry Sheet','ML81N','ml81n',3)}
-      ${node('Goods Movement','MIGO','migo',3)}
-      ${node('* Output Processing for Matl Documents','MB90','output',3)}
-      ${node('Display Material Master','MM03','mm03',3)}
-      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Sales and Distribution</span></div>
-      ${node('Create Sales Order','VA01','va01',3)}
-      ${node('Display Sales Order','VA03','va03',3)}
-      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Accounting</b></span></div>
-      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Financial Accounting</span></div>
-      ${node('Enter G/L Account Document','FB50','fb50',3)}
-      ${node('G/L Line Item Display','FBL3N','fbl3n',3)}
+  const tree = `<div class="g-treebox">
+    <div class="g-treebox-head">SAP Easy Access</div>
+    <div class="g-tree-scroll">
+      ${branch('Favorites',0,true)}
+      ${FAVORITES.map(f=>leaf((f.starred?'* ':'')+f.name,f.tcode,f.id,1)).join('')}
+      ${branch('Logistics',0,true)}
+      ${branch('Materials Management',1,true)}
+      ${branch('Purchasing',2,true)}
+      ${leaf('Create Purchase Order','ME21N','me21n',3)}
+      ${leaf('Display Purchase Order','ME23N','me23n',3)}
+      ${leaf('Create Purchase Requisition','ME51N','me51n',3)}
+      ${leaf('Display Purchase Requisition','ME53N','me53n',3)}
+      ${leaf('Service Entry Sheet','ML81N','ml81n',3)}
+      ${leaf('Goods Movement','MIGO','migo',3)}
+      ${leaf('* Output Processing for Matl Documents','MB90','output',3)}
+      ${leaf('Display Material Master','MM03','mm03',3)}
+      ${branch('Sales and Distribution',1,true)}
+      ${leaf('Create Sales Order','VA01','va01',3)}
+      ${leaf('Display Sales Order','VA03','va03',3)}
+      ${branch('Accounting',0,true)}
+      ${branch('Financial Accounting',1,true)}
+      ${leaf('Enter G/L Account Document','FB50','fb50',3)}
+      ${leaf('G/L Line Item Display','FBL3N','fbl3n',3)}
     </div>
   </div>`;
 
-  const work = `
-  <div class="gworkarea">
-    ${guiTitle({line1:'SAP Easy Access', line2:'SAP Easy Access Menu'})}
-    <div class="gwork-cols">
-      <div class="gwork-main">
-        <div class="gmenu-title">SAP Easy Access</div>
-        <div class="gwork-list">
-          <div class="gwork-row" onclick="startScenario('me21n')"><span class="gwr-ico">🛒</span><span class="gwr-lab"><b>Create Purchase Order</b><small>ME21N · 5 steps · Procure-to-Pay</small></span><span class="gwr-tc">ME21N</span></div>
-          <div class="gwork-row" onclick="startScenario('va01')"><span class="gwr-ico">📦</span><span class="gwr-lab"><b>Create Sales Order</b><small>VA01 · 6 steps · Order-to-Cash</small></span><span class="gwr-tc">VA01</span></div>
-          <div class="gwork-row" onclick="startScenario('fb50')"><span class="gwr-ico">💼</span><span class="gwr-lab"><b>Enter G/L Account Document</b><small>FB50 · 5 steps · Finance</small></span><span class="gwr-tc">FB50</span></div>
-          <div class="gwork-sep">Favorites — pinned in this menu and in the tree</div>
-          ${FAVORITES.map(f=>`<div class="gwork-row" onclick="startScenario('${f.id}')"><span class="gwr-ico">${f.icon}</span><span class="gwr-lab"><b>${f.starred?'★ ':''}${esc(f.name)}</b><small>${esc(f.desc)}</small></span><span class="gwr-tc">${f.tcode}</span></div>`).join('')}
+  const work = `<div class="g-work">
+    ${guiScreenTitle({line1:'SAP Easy Access',line2:'SAP Easy Access Menu'})}
+    <div class="g-work-inner">
+      <div class="g-work-main">
+        <div class="g-work-h">SAP Easy Access</div>
+        <div class="g-work-list">
+          ${[['me21n','Create Purchase Order'],['va01','Create Sales Order'],['fb50','Enter G/L Account Document']].map(([id,name])=>
+            `<div class="g-work-item" onclick="startScenario('${id}')">${ico('leaf')}<span class="g-wi-txt">${name}</span><span class="g-tree-tc">${SCENARIOS[id].tcode}</span></div>`).join('')}
+          <div class="g-work-sep">Favorites</div>
+          ${FAVORITES.map(f=>`<div class="g-work-item" onclick="startScenario('${f.id}')">${f.starred?ico('star'):ico('leaf')}<span class="g-wi-txt">${esc(f.name)}</span><span class="g-tree-tc">${f.tcode}</span><span class="g-wi-st">${esc(simStatus(f.id).label)}</span></div>`).join('')}
         </div>
-        <div class="gvaluehelp" style="margin-top:10px">💡 <b>How to drive it like the real thing:</b> type a T-Code in the command field (top left) and press <b>Enter</b>, or double-click any node in the tree. The toolbar's <b>Back / Exit / Log off</b> icons work too.</div>
       </div>
-      <div class="gwork-side">
-        <div class="gside-box"><div class="gside-head">My Documents</div>
-          ${state.documents.length ? `<table class="gside-table">${state.documents.slice(0,8).map(d=>`<tr onclick="startScenario('${d.scenarioId}')" class="grow-link"><td>${esc(d.type)}</td><td class="gtd-tc">${esc(d.number)}</td></tr>`).join('')}</table>` : `<div class="gside-empty">No documents yet — run a transaction and save.</div>`}
-        </div>
-        <div class="gside-box"><div class="gside-head">System Info</div>
-          <table class="gside-table">
-            <tr><td>System</td><td><b>PRD (1)</b></td></tr>
-            <tr><td>Client</td><td><b>100</b></td></tr>
-            <tr><td>User</td><td><b>ENTERPRISE_USER</b></td></tr>
-            <tr><td>Language</td><td><b>EN</b></td></tr>
-            <tr><td>Date</td><td><b>11/10/2026</b></td></tr>
+      <div class="g-work-side">
+        <fieldset class="g-group"><legend>My Documents</legend>
+          ${state.documents.length? `<table class="g-mini">${state.documents.slice(0,7).map(d=>
+            `<tr onclick="startScenario('${d.scenarioId}')"><td>${esc(d.type)}</td><td class="g-mono">${esc(d.number)}</td></tr>`).join('')}</table>`
+            : `<div class="g-note">No documents saved yet.</div>`}
+        </fieldset>
+        <fieldset class="g-group"><legend>System</legend>
+          <table class="g-mini">
+            <tr><td>System</td><td>PRD (1)</td></tr>
+            <tr><td>Client</td><td>100</td></tr>
+            <tr><td>User</td><td>ENTERPRISE_USER</td></tr>
+            <tr><td>Language</td><td>EN</td></tr>
+            <tr><td>Date</td><td>11/10/2026</td></tr>
           </table>
-        </div>
+        </fieldset>
       </div>
     </div>
+    <div class="g-msgline"><span class="g-msgico" id="sysIco"></span><span id="sysResponse" class="gsys">Ready.</span></div>
   </div>`;
 
-  return renderGuiShell(`
-    <div class="geasy-wrap">${tree}${work}</div>
-    <div class="gstatusarea">
-      <div class="gstatus-auto">Your Favorites (${FAVORITES.length})</div>
-      ${guiGrid(['Favorite','T-Code','Status'], FAVORITES.map(f=>{
-        const st=simStatus(f.id);
-        return [`<a onclick="startScenario('${f.id}')">★ ${esc(f.name)}</a>`, f.tcode, st.cls==='done'?'✔ '+esc(st.label):esc(st.label)];
-      }))}
-    </div>`,
-    {windowTitle:'SAP Easy Access', picture:{icon:'🖥️',line1:'SAP Easy Access',line2:'SAP Easy Access Menu'}});
+  return `<div class="g-frame">
+    <div class="g-wintitle"><span class="g-winico"></span><span class="g-wintitle-txt">SAP Easy Access</span>
+      <span class="g-winbtns"><span>_</span><span>□</span><span class="x">×</span></span></div>
+    ${guiMenuBar('SAP Easy Access',['Edit','Favorites','Extras','Window','Help'])}
+    ${guiToolbar({enter:'guiHintEnter()'})}
+    ${guiCmdBar('')}
+    <div class="g-screen">
+      <div class="g-easy">${tree}${work}</div>
+    </div>
+    <div class="g-status" id="statusBar"></div>
+  </div>`;
+}
+function guiToggleHelp(){
+  state.helpClosed = !(state.helpClosed!==false);
+  render();
+}
+function guiToggleTree(el){
+  const open=el.classList.contains('open');
+  el.classList.toggle('open');
+  el.querySelector('.g-tree-tw').textContent=open?'+':'−';
+  let n=el.nextElementSibling;
+  while(n && +n.className.match(/lv(\d)/)[1] > +el.className.match(/lv(\d)/)[1]){
+    n.style.display=open?'none':'';
+    n=n.nextElementSibling;
+  }
+}
+function guiHintEnter(){
+  if(state.view==='home') setStatus('Enter a transaction code or choose an entry from the SAP Easy Access menu.','info');
+  else nextStep();
+}
+function guiSaveShortcut(){
+  if(state.view!=='sim'){ setStatus('No transaction is active.','info'); return; }
+  const sc=SCENARIOS[state.scenarioId]; const p=(sc.steps[state.step]||{}).primary;
+  if(p) runAction(p.handler); else setStatus('Nothing to save on this screen.','info');
+}
+function guiExecute(){
+  if(state.view!=='sim'){ setStatus('Execute: open a transaction first.','info'); return; }
+  const sc=SCENARIOS[state.scenarioId]; const p=(sc.steps[state.step]||{}).primary;
+  if(p) runAction(p.handler); else nextStep();
 }
 
-/* ---- GUI screen for a transaction step ---- */
+/* ---------- transaction screen ---------- */
 const GUI_TABS = {
-  me21n:['Header','Item Overview','Delivery/Invoicing','Conditions','Account Assignment'],
-  va01:['Header','Item Overview','Order Header','Business Data'],
-  fb50:['Basic Data','Line Items','Tax'],
-  me23n:['Header','Item Overview','PO History','Status'],
-  ml81n:['Header 1','Header 2','Service Lines'],
+  me21n:['Header','Item Overview','Delivery/Invoicing'],
+  va01:['Header','Item Overview','Order Header'],
+  fb50:['Basic Data','Line Items'],
+  me23n:['Header','Item Overview','PO History'],
+  ml81n:['Header 1','Service Lines'],
   output:['Selection','Output'],
-  migo:['Header','Item','Output'],
-  me51n:['Header','Item Overview','Requisition Notes'],
-  me53n:['Header','Item Overview','Release'],
-  mm03:['Basic Data','Sales','Purchasing'],
-  va03:['Header','Item Overview','Conditions'],
+  migo:['Header','Item'],
+  me51n:['Header','Item Overview'],
+  me53n:['Header','Item Overview'],
+  mm03:['Basic Data','Purchasing'],
+  va03:['Header','Item Overview'],
   fbl3n:['Selection','Line Items'],
 };
-const GUI_TAB_BY_STEP = {
-  me21n:[0,0,1,1,1], va01:[0,0,0,1,1,1], fb50:[0,0,1,1,1], me23n:[0,1,1,3],
-  ml81n:[0,0,2,2], output:[0,0,1,1], migo:[0,0,1,1], me51n:[0,0,1,1],
-  me53n:[0,1,1,2], mm03:[0,0,0], va03:[0,1,1,1], fbl3n:[0,1,1],
-};
-const GUI_STEP_LABEL = {
-  me21n:['Initial Screen','Header Data','Item Overview','Check','Save'],
-  va01:['Initial Screen','Order Type','Order Header','Item Overview','Availability','Save'],
-  fb50:['Initial Screen','Document Header','Line Items','Balance','Post'],
-  me23n:['Command Field','Selection','Purchase Order'],
-  ml81n:['Command Field','Header','Service Lines','Save'],
-  output:['Command Field','Selection','Print Preview','Print'],
-  migo:['Command Field','Goods Receipt','Item Data','Post'],
-  me51n:['Command Field','Header','Item Overview','Save'],
-  me53n:['Command Field','Selection','Purchase Requisition'],
-  mm03:['Command Field','Selection','Material Master'],
-  va03:['Command Field','Selection','Sales Order'],
-  fbl3n:['Command Field','Selection','Line Items'],
+const GUI_TAB_STEP = {
+  me21n:[0,0,1,1,1], va01:[0,0,0,1,1,1], fb50:[0,0,1,1,1],
+  me23n:[0,1,1], ml81n:[0,0,1,1], output:[0,0,1,1], migo:[0,0,1,1],
+  me51n:[0,0,1,1], me53n:[0,1,1], mm03:[0,0,0], va03:[0,1,1], fbl3n:[0,1,1],
 };
 
-/* Guided reference panel that keeps the wizard teaching intact, docked on the right like an SAP side panel */
-function guiGuidePanel(sc, step, idx){
-  const total=sc.steps.length;
+function guiHelpPane(sc){
+  const closed=state.helpClosed!==false;   // default collapsed: the SAP screen stays the hero
   const rows=sc.steps.map((s,i)=>{
-    const done=state.completed || (state.doneSteps.includes(i)&&i<state.step);
-    const cur=i===state.step && !state.completed;
-    return `<div class="gteam-step ${done?'done':''} ${cur?'cur':''}">
-      <span class="gts-n">${done?'✔':i+1}</span><span class="gts-t">${esc(GUI_STEP_LABEL[sc.id]&&GUI_STEP_LABEL[sc.id][i]||s.title)}</span></div>`;
+    const done=state.completed||(state.doneSteps.includes(i)&&i<state.step);
+    const cur=i===state.step&&!state.completed;
+    return `<div class="g-help-step ${done?'done':''} ${cur?'cur':''}">
+      <span class="g-hs-n">${done?ico('check'):i+1}</span><span class="g-hs-t">${esc(sapText(s.title))}</span></div>`;
   }).join('');
-  return `<div class="gteam">
-    <div class="gteam-head">🎓 Guided Simulation</div>
-    <div class="gteam-sub">${esc(sc.tcode)} · ${esc(sc.title)}</div>
-    <div class="gteam-prog"><div style="width:${state.completed?100:Math.round(((idx)/Math.max(1,total-1))*100)}%"></div></div>
-    <div class="gteam-body">${rows}</div>
-    <div class="gteam-task"><b>Task ${idx+1} of ${total}</b><br>${step.desc||''}</div>
-    <ol class="gteam-instr"><li>${step.instruction||''}</li></ol>
-    <div class="gteam-actions">
-      <button class="gbtn" onclick="prevStep()" ${idx===0?'disabled':''}>◀ Back</button>
-      ${(step.autofill&&Object.keys(step.autofill).length)?`<button class="gbtn" onclick="autoFill()">💡 Fill values</button>`:''}
-      <button class="gbtn gbtn-enter" onclick="nextStep()">${idx===total-1?'✔ Finish':'Enter ▶'}</button>
+  const step=sc.steps[state.step];
+  if(closed){
+    return `<div class="g-help g-help-min">
+      <div class="g-help-head" onclick="guiToggleHelp()" title="Open the guided simulation panel">?</div>
+      <div class="g-help-vert">GUIDED</div>
+    </div>`;
+  }
+  return `<div class="g-help">
+    <div class="g-help-head" onclick="guiToggleHelp()" title="Collapse the guided panel">Guided Simulation &nbsp;[x]</div>
+    <div class="g-help-sub">${esc(sc.tcode)} &nbsp;${esc(sapText(sc.title))}</div>
+    <div class="g-help-steps">${rows}</div>
+    <div class="g-help-task"><b>Step ${state.step+1} of ${sc.steps.length}</b><br>${sapText(step.desc||'')}</div>
+    <div class="g-help-instr">${sapText(step.instruction||'')}</div>
+    <div class="g-help-btns">
+      <button class="g-btn" onclick="prevStep()" ${state.step===0?'disabled':''}>Back</button>
+      ${(step.autofill&&Object.keys(step.autofill).length)?`<button class="g-btn" onclick="autoFill()">Fill</button>`:''}
+      <button class="g-btn g-btn-def" onclick="nextStep()">${state.step===sc.steps.length-1?'Finish':'Enter'}</button>
     </div>
-    <div class="gteam-foot">Switch to <b>✨ Fiori</b> at the top right — your step and entries stay.</div>
+    <div class="g-help-foot">Fiori button (top right) switches experience — entries are kept.</div>
   </div>`;
 }
 
+/* GUI variant of a step body: same content, no pictograms, no web cards */
+function guiStepBody(step){
+  let html='';
+  try{ html=step.body(); }catch(e){ html='<div class="g-note">Screen could not be rendered.</div>'; }
+  return stripEmoji(html);
+}
 function renderGuiSim(){
   const sc=SCENARIOS[state.scenarioId];
   if(!sc) return renderGuiHome();
   const step=sc.steps[state.step];
-  const allTabs=GUI_TABS[sc.id]||['Header','Items'];
-  const activeTab=Math.min((GUI_TAB_BY_STEP[sc.id]||[])[state.step]||0, allTabs.length-1);
-  // only show the tabs this transaction really opens during the guided steps (no dead tabs)
-  const tabs=allTabs.slice(0, Math.max(...(GUI_TAB_BY_STEP[sc.id]||[0]).concat([0]))+1);
-  const shownTab=Math.min(activeTab, tabs.length-1);
+  const tabs=GUI_TABS[sc.id]||['Header'];
+  const active=(GUI_TAB_STEP[sc.id]||[])[state.step]||0;
 
-  let screenBody;
+  let body;
   if(state.completed){
-    screenBody = `
-      ${guiTcodeTitle(sc.tcode,'Display '+sc.docType)}
-      ${guiTabs(tabs, 0)}
-      <div class="gbox gbox-success">
-        <div class="gsuccess-ico">✔</div>
-        <div class="gsuccess-txt"><b>${esc(sc.docType)} ${esc(state.docNumber)} has been saved</b>
-        <p>${esc(sc.title)} completed in ${state.mode==='gui'?'SAP GUI (ECC)':'Fiori'}. The document is now in the database of client 100.</p></div>
+    body=`${guiScreenTitle({line1:sc.title,line2:sc.tcode})}
+      ${guiTabs(tabs,0)}
+      <div class="g-scroll">
+        <div class="g-success">
+          <div class="g-success-h">${esc(sc.docType)} ${esc(state.docNumber)} has been saved</div>
+          <div class="g-success-b">The document was posted to client 100. You can display it again from the Favorites.</div>
+        </div>
+        ${guiGroup('Document', guiGrid(['Document','Document type','Status'],[
+          [esc(state.docNumber),esc(sc.docType),'Saved']
+        ]))}
+        <div class="g-btnrow">
+          <button class="g-btn g-btn-def" onclick="goHome()">Continue</button>
+          <button class="g-btn" onclick="resetScenario()">Restart</button>
+          <button class="g-btn" onclick="setMode('fiori')">Open in Fiori</button>
+        </div>
       </div>
-      ${guiGroup('Document', guiGrid(['Document','Type','Company / Org','Status'],[
-        [esc(state.docNumber), esc(sc.docType), esc(sc.module.replace('·','')), '✔ Posted / saved']]))}
-      ${guiMessages()}
-      <div class="gbtnrow">
-        <button class="gbtn gbtn-enter" onclick="goHome()">✔ Continue</button>
-        <button class="gbtn" onclick="resetScenario()">🔄 Restart ${sc.tcode}</button>
-        <button class="gbtn" onclick="setMode('fiori')">✨ View in Fiori</button>
-      </div>`;
+      ${guiMessages()}`;
   } else {
     const hasAuto = step.autofill && Object.keys(step.autofill).length>0;
-    screenBody = `
-      ${guiTcodeTitle(sc.tcode, step.title)}
-      ${guiTabs(tabs, shownTab)}
-      <div class="gscreen-scroll">
-        <div class="ginstr"><b>📌 What to do:</b> ${step.instruction}</div>
-        ${step.body()}
+    body=`${guiScreenTitle({line1:step.title,line2:sc.tcode})}
+      ${guiTabs(tabs,active)}
+      <div class="g-scroll">
+        <div class="g-instr">${sapText(step.instruction)}</div>
+        ${guiStepBody(step)}
         ${guiMessages()}
-        <div class="gbtnrow">
-          <button class="gbtn" onclick="prevStep()" ${state.step===0?'disabled':''}>◀ Back</button>
-          ${hasAuto?`<button class="gbtn" onclick="autoFill()">💡 Fill values</button>`:''}
-          ${step.primary?`<button class="gbtn gbtn-enter" onclick="runAction('${step.primary.handler}')">${step.primary.label}</button>`:''}
-          <span class="gbtn-spacer"></span>
-          <button class="gbtn gbtn-enter" onclick="nextStep()">${state.step===sc.steps.length-1?'✔ Finish':'Enter ▶'}</button>
+        <div class="g-btnrow">
+          <button class="g-btn" onclick="prevStep()" ${state.step===0?'disabled':''}>Back</button>
+          ${hasAuto?`<button class="g-btn" onclick="autoFill()" title="Fill the correct values for this step">Fill values</button>`:''}
+          ${step.primary?`<button class="g-btn g-btn-def" onclick="runAction('${step.primary.handler}')">${plain(step.primary.label)}</button>`:''}
+          <span class="g-spacer"></span>
+          <button class="g-btn g-btn-def" onclick="nextStep()">${state.step===sc.steps.length-1?'Finish':'Enter'}</button>
         </div>
-      </div>`;
+      </div>
+      ${guiMessages()}`;
   }
 
-  return renderGuiShell(`
-    <div class="gsim-wrap">
-      <div class="gsim-screen">${guiScreen(screenBody)}</div>
-      ${guiGuidePanel(sc, step, state.step)}
-    </div>`,
-    {windowTitle:`${sc.tcode} — ${sc.title}`, transaction:{tcode:sc.tcode, parent:sc.module.split('·')[1]?sc.module.split('·')[1].trim():'SAP'}});
+  return `<div class="g-frame">
+    <div class="g-wintitle"><span class="g-winico"></span><span class="g-wintitle-txt">${esc(sapText(sc.title))} - ${esc(sc.tcode)}</span>
+      <span class="g-winbtns"><span>_</span><span>□</span><span class="x">×</span></span></div>
+    ${guiMenuBar(sapText(step.title),['Edit','Goto','System','Help'])}
+    ${guiToolbar({enter:'nextStep()'})}
+    ${guiCmdBar(sc.tcode)}
+    <div class="g-screen">
+      <div class="g-sim">${body}${guiHelpPane(sc)}</div>
+    </div>
+    <div class="g-status" id="statusBar"></div>
+  </div>`;
 }
 
 /* Fiori launchpad tile shown instead of the T-Code command field when in Fiori mode */

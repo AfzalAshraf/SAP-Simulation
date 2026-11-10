@@ -310,442 +310,617 @@ body[data-mode="fiori"] .menu-card-head{background:var(--sap-blue)}
 }
 
 /* =====================================================================
-   SAP GUI FOR WINDOWS DESKTOP (GUI mode)
-   Classic Windows chrome + SAP screens: menubar, icon toolbar, tabstrip,
-   framed field groups, grids and the SAP status bar.
+   SAP GUI FOR WINDOWS — ECC (GUI mode)
+   Deliberately flat and dense: 11px Arial, #ece9d8 / #d4d0c8 faces,
+   3-D bevels, square corners, no shadows, no gradients except title bar.
    ===================================================================== */
 :root{
-  --gui-desk:#7f9db9;          /* Windows desktop behind the window */
-  --gui-face:#d6dde5;          /* window chrome / screen background    */
-  --gui-face2:#e6ebf1;
-  --gui-line:#9dafc0;          /* 3-D border dark edge                */
-  --gui-line2:#ffffff;         /* 3-D border light edge               */
-  --gui-title:#0a246a;         /* classic active title bar            */
-  --gui-title2:#3a6ea5;
-  --gui-input:#ffffff;
-  --gui-field:#f7fbff;         /* SAP input field tint                */
-  --gui-key:#0a246a;           /* label text                          */
-  --gui-blue:#0000a0;          /* hyperlink-ish SAP blue              */
-  --gui-sel:#cfe3f7;
-  --gui-font: "Segoe UI", Tahoma, Verdana, Arial, sans-serif;
-  --gui-mono: "Consolas","Courier New",monospace;
+  --w-face:#d4d0c8;        /* classic Windows control face */
+  --w-face2:#ece9d8;
+  --w-screen:#f2f2f2;      /* SAP screen background */
+  --w-hi:#ffffff;
+  --w-sh:#808080;          /* bevel shadow */
+  --w-dk:#404040;          /* bevel dark */
+  --w-blue:#0a246a;
+  --w-txt:#000000;
+  --w-label:#1f2d3d;
+  --w-inp:#ffffff;
+  --w-sel:#316ac5;
+  --w-green:#006400;
+  --w-red:#a00000;
 }
+body[data-mode="gui"]{
+  background:#3a6ea5;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:11px;
+  color:var(--w-txt);
+  margin:0;
+  padding:6px;
+  -webkit-font-smoothing:antialiased;
+}
+body[data-mode="gui"] *{ border-radius:0 !important; }
 
-/* ---------- Desktop + window ---------- */
-.sapdesktop{
-  min-height:100vh;
-  padding:14px 16px 18px;
-  background:
-    radial-gradient(circle at 20% 10%, rgba(255,255,255,.35), transparent 45%),
-    linear-gradient(180deg,#8fb0ca 0%,#6f8fae 55%,#5e7c9a 100%);
-  font-family:var(--gui-font);
-  font-size:13px;
-  color:#101d2e;
+/* ---- window ---- */
+.g-frame{
+  max-width:1400px;
+  margin:0 auto;
+  background:var(--w-face2);
+  border:1px solid #0a246a;
+  font-family:Arial, Helvetica, sans-serif;
+  font-size:11px;
+  color:#000;
 }
-.sapwin{
-  max-width:1420px;margin:0 auto;
-  background:var(--gui-face);
-  border:1px solid #35506b;
-  border-radius:6px;
-  box-shadow:0 18px 44px rgba(6,22,40,.42), 0 2px 0 rgba(255,255,255,.5) inset;
-  overflow:hidden;
-  display:flex;flex-direction:column;
-  min-height:calc(100vh - 92px);
+.g-wintitle{
+  display:flex;align-items:center;gap:4px;
+  background:linear-gradient(180deg,#0a246a 0%,#3a6ea5 100%);
+  color:#fff;font-size:11px;font-weight:bold;padding:2px 3px;
 }
+.g-winico{
+  width:14px;height:13px;flex:0 0 14px;
+  background:linear-gradient(90deg,#e8b400 0 50%,#0a6b2f 50% 100%);
+  border:1px solid #5a4a00;
+}
+.g-wintitle-txt{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.g-winbtns{display:flex;gap:2px}
+.g-winbtns span{
+  width:16px;height:14px;display:grid;place-items:center;
+  background:var(--w-face);border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-dk);border-bottom:1px solid var(--w-dk);
+  color:#000;font-size:10px;font-weight:bold;line-height:1;
+}
+.g-winbtns span.x{margin-left:1px}
 
-/* Title bar */
-.sapwin-title{
-  display:flex;align-items:center;gap:8px;
-  background:linear-gradient(180deg,var(--gui-title2) 0%,var(--gui-title) 100%);
-  color:#fff;padding:5px 8px 5px 10px;font-size:12.5px;font-weight:700;
-  border-bottom:1px solid #061a45;
+/* ---- menu bar ---- */
+.g-menubar{
+  display:flex;align-items:center;gap:0;
+  background:var(--w-face2);
+  border-bottom:1px solid var(--w-sh);
+  padding:1px 3px;font-size:11px;
 }
-.swt-ico{font-size:12px;opacity:.9}
-.swt-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:.2px}
-.swt-ctrl{display:flex;gap:3px}
-.swt-ctrl span{
-  width:20px;height:17px;display:grid;place-items:center;font-size:10px;font-weight:700;
-  background:linear-gradient(180deg,#e9eef4,#c6d1dc);color:#1b2c3e;
-  border:1px solid #6d7f92;border-radius:2px;cursor:default;
+.g-menu-title{font-weight:bold;color:var(--w-blue);padding:0 8px 0 2px;white-space:nowrap}
+.g-menu{
+  border:0;background:transparent;color:#000;font-family:inherit;font-size:11px;
+  padding:1px 7px;cursor:default;
 }
-.swt-ctrl span.x{background:linear-gradient(180deg,#f3c3c0,#d97b74);color:#4a0d08}
+.g-menu:hover{background:var(--w-sel);color:#fff}
 
-/* Menu bar */
-.sapmenubar{
-  display:flex;align-items:center;gap:2px;flex-wrap:wrap;
-  background:var(--gui-face);border-bottom:1px solid var(--gui-line);
-  padding:2px 4px;font-size:12.5px;
+/* ---- icon toolbar ---- */
+.g-toolbar{
+  display:flex;align-items:center;gap:1px;
+  background:var(--w-face2);
+  border-bottom:1px solid var(--w-sh);
+  padding:2px 4px;
 }
-.gmenu-item{
-  border:0;background:transparent;color:#101d2e;padding:3px 8px;border-radius:3px;
-  font-size:12.5px;font-weight:500;
-}
-.gmenu-item:hover{background:#2f6fa8;color:#fff}
-.gmenu-conn{font-size:11px;color:#39536d;padding-right:6px}
-.sapmenubar .spacer{flex:1}
-
-/* Icon toolbar (the thing that makes it read as SAP) */
-.saptoolbar{
-  display:flex;align-items:center;gap:2px;flex-wrap:wrap;
-  background:linear-gradient(180deg,#eef2f6,#d9e1e9);
-  border-bottom:2px solid var(--gui-line);
-  padding:4px 6px;
-}
-.gtb-group{display:flex;align-items:flex-end;gap:1px}
-.gtb-sep{width:1px;align-self:stretch;background:linear-gradient(180deg,transparent,var(--gui-line) 20%,var(--gui-line) 80%,transparent);margin:2px 7px}
-.saptoolbar .spacer{flex:1}
-.gtb-btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;
-  min-width:46px;padding:2px 5px 1px;border:1px solid transparent;border-radius:3px;
-  background:transparent;color:#12283d;line-height:1.05;
-}
-.gtb-btn .gtb-ico{font-size:15px;height:19px;display:grid;place-items:center;line-height:1}
-.gtb-btn .gtb-lbl{font-size:9.5px;font-weight:600;color:#2b4256;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.gtb-btn:hover{background:#fff;border-color:#9fb6cc;box-shadow:0 1px 2px rgba(0,0,0,.12)}
-.gtb-btn:active{background:#cfe0f0;border-color:#7c93a8}
-.gtb-btn.primary .gtb-lbl{color:#0a5c2a}
-.gtb-btn.primary .gtb-ico{filter:drop-shadow(0 0 2px rgba(16,126,62,.45))}
-.gtb-btn:disabled{opacity:.45}
-.gtb-btn.mode{background:#0a6ed1;border-color:#0854a0;color:#fff;min-width:74px}
-.gtb-btn.mode .gtb-lbl{color:#dbeafe;font-size:10px}
-.gtb-btn.mode-flip{background:#107e3e;border-color:#0b6b34;min-width:52px}
-.gtb-btn.mode-flip .gtb-lbl{color:#d8f5e2;font-size:10px}
-
-/* Screen area */
-.sapwin-screen{background:var(--gui-face);padding:6px 8px 0;flex:1;display:flex;flex-direction:column;min-height:0}
-.gcmdbar{
-  display:flex;align-items:center;gap:6px;padding:2px 2px 6px;
-}
-.gcmd-ico{color:#0a246a;font-size:11px}
-.gcmd-box{
-  background:var(--gui-input);border:1px solid #6b7f93;
-  box-shadow:inset 1px 1px 0 #b9c6d3, 0 1px 0 #fff;
-  padding:1px 4px;min-width:190px;flex:0 0 240px;
-}
-.gcmd-box input{
-  width:100%;border:0;outline:none;background:transparent;
-  font-family:var(--gui-mono);font-size:12.5px;color:#0b1220;padding:2px 2px;text-transform:uppercase;
-}
-.gcmd-box input::placeholder{text-transform:none;font-family:var(--gui-font);color:#7b8ea1;font-size:11.5px}
-.gcmd-go{
+.g-tb{
   width:24px;height:22px;display:grid;place-items:center;
-  border:1px solid #6b7f93;background:linear-gradient(180deg,#f7fafc,#d5dee7);
-  color:#0a5c2a;font-weight:800;border-radius:3px;font-size:13px;
+  background:var(--w-face);
+  border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
+  padding:0;cursor:default;
 }
-.gcmd-go:hover{background:linear-gradient(180deg,#fff,#e3ecf4)}
-.gcmd-spacer{flex:1}
-.gcmd-sys{font-size:11px;color:#3b556d;font-family:var(--gui-mono)}
+.g-tb:hover{background:#e8e4dc}
+.g-tb:active, .g-tb.on{
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:#cfcac2;
+}
+.g-tb svg{display:block;shape-rendering:crispEdges}
+.g-tb-spacer{flex:1}
+.g-sep{
+  display:inline-block;width:5px;height:22px;margin:0 3px;
+  border-left:1px solid var(--w-sh);border-right:1px solid var(--w-hi);
+}
+.g-tb-flip{width:auto;padding:0 6px;background:var(--w-face)}
+.g-flip-txt{font-size:10px;font-weight:bold;color:#0a246a}
 
-.gscreen-body{flex:1;min-height:0;display:flex;flex-direction:column}
-.geasy-wrap{display:grid;grid-template-columns:330px 1fr;gap:8px;align-items:start}
-.gsim-wrap{display:grid;grid-template-columns:1fr 236px;gap:8px;align-items:start}
+/* ---- command field ---- */
+.g-cmdrow{
+  display:flex;align-items:center;gap:3px;
+  background:var(--w-face2);
+  border-bottom:1px solid var(--w-sh);
+  padding:3px 4px;
+}
+.g-cmd-arrow{font-size:10px;color:var(--w-blue);font-weight:bold}
+.g-cmd{
+  width:210px;height:17px;
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:var(--w-inp);font-family:"Courier New",monospace;font-size:11px;
+  color:#000;padding:0 2px;text-transform:uppercase;outline:none;
+}
+.g-cmd::placeholder{text-transform:none;color:#808080;font-family:Arial}
+.g-cmd-enter{
+  width:22px;height:19px;display:grid;place-items:center;
+  background:var(--w-face);
+  border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
+  padding:0;cursor:default;
+}
+.g-cmd-spacer{flex:1}
 
-/* ---------- SAP screen (white working area) ---------- */
-.gscreen{
-  background:#fff;border:1px solid #93a7b9;
-  box-shadow:inset 0 1px 0 #fff;
-  display:flex;flex-direction:column;min-height:420px;
+/* ---- screen ---- */
+.g-screen{
+  background:var(--w-screen);
+  border-top:1px solid var(--w-hi);
+  padding:0;
+  min-height:430px;
 }
-.gtitle{
-  width:100%;border-collapse:collapse;
-  background:linear-gradient(180deg,#eef3f8,#dde6ee);
-  border-bottom:1px solid #a9bbcb;
-}
-.gtitle td{padding:5px 9px;font-size:12.5px}
-.gtitle-l{font-weight:700;color:#0a246a}
-.gtitle-r{text-align:right;color:#28455f;font-family:var(--gui-mono);font-size:11.5px;white-space:nowrap}
-.gtitle-r b{color:#0a246a}
+.g-easy{display:grid;grid-template-columns:302px 1fr;gap:0;align-items:stretch}
+.g-sim{display:grid;grid-template-columns:1fr 216px;gap:0;align-items:stretch}
 
-/* Tabstrip */
-.gtabs{
-  display:flex;gap:1px;flex-wrap:wrap;
-  background:#cfd9e3;border-bottom:1px solid #8fa3b5;padding:3px 6px 0;
+/* tree */
+.g-treebox{border-right:1px solid var(--w-sh);background:#fff;min-height:430px}
+.g-treebox-head{
+  background:var(--w-face);border-bottom:1px solid var(--w-sh);
+  padding:2px 6px;font-weight:bold;font-size:11px;color:var(--w-blue);
 }
-.gtab{
-  font-size:11.5px;font-weight:600;color:#2c4761;
-  background:linear-gradient(180deg,#eaeff4,#cfdae5);
-  border:1px solid #96a9bb;border-bottom:0;
-  border-radius:4px 4px 0 0;padding:3px 11px;cursor:default;white-space:nowrap;
+.g-tree-scroll{max-height:560px;overflow:auto;padding:2px 0 8px}
+.g-tree-row{
+  display:flex;align-items:center;gap:3px;
+  padding:0 4px 0 0;height:17px;cursor:default;white-space:nowrap;font-size:11px;
 }
-.gtab.active{background:#fff;color:#0a246a;font-weight:800;box-shadow:0 -1px 0 #fff inset;padding-bottom:4px;margin-bottom:-1px}
+.g-tree-row:hover{background:#e8eef7}
+.g-tree-row.sel{background:var(--w-sel);color:#fff}
+.g-tree-row.sel .g-tree-tc{background:#0a3f8f;color:#fff;border-color:#0a3f8f}
+.g-tree-tw{width:11px;flex:0 0 11px;text-align:center;font-family:"Courier New",monospace;font-size:11px;color:#333}
+.g-tree-row svg{flex:0 0 16px}
+.g-tree-txt{overflow:hidden;text-overflow:ellipsis;padding-left:1px}
+.g-tree-tc{
+  margin-left:auto;font-family:"Courier New",monospace;font-size:10px;
+  background:#f0f0f0;border:1px solid #a0a0a0;padding:0 3px;color:#333;
+}
+.g-tree-done{display:flex;margin-left:3px}
+.g-tree-row.lv0{padding-left:3px;font-weight:bold}
+.g-tree-row.lv1{padding-left:16px}
+.g-tree-row.lv2{padding-left:31px}
+.g-tree-row.lv3{padding-left:47px}
 
-.gscreen-scroll{padding:10px 12px;flex:1;overflow:auto}
+/* work area */
+.g-work{background:var(--w-screen);display:flex;flex-direction:column;min-width:0}
+.g-work-inner{display:grid;grid-template-columns:1fr 254px;gap:8px;padding:6px 8px;flex:1}
+.g-work-main{min-width:0}
+.g-work-h{font-weight:bold;color:var(--w-blue);font-size:11px;margin:0 0 4px}
+.g-work-list{display:flex;flex-direction:column}
+.g-work-item{
+  display:flex;align-items:center;gap:4px;height:18px;padding:0 4px;
+  font-size:11px;cursor:default;
+}
+.g-work-item:hover{background:var(--w-sel);color:#fff}
+.g-work-item:hover .g-tree-tc{background:#0a3f8f;color:#fff}
+.g-wi-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-wi-st{margin-left:8px;color:#555;font-size:10px}
+.g-work-item:hover .g-wi-st{color:#dbe6f5}
+.g-work-sep{
+  font-weight:bold;color:var(--w-blue);font-size:11px;
+  border-bottom:1px solid var(--w-sh);margin:7px 0 3px;padding-bottom:1px;
+}
+.g-work-side{display:flex;flex-direction:column;gap:6px}
 
-/* Instruction strip (kept, but in SAP colours) */
-.ginstr{
-  background:#fffbe6;border:1px solid #d9c27a;border-left:4px solid #b8860b;
-  padding:7px 10px;font-size:12.5px;color:#4a3a08;margin-bottom:10px;line-height:1.45;
+/* group box (fieldset) */
+.g-group{
+  border:1px solid var(--w-sh);
+  border-top-color:var(--w-hi);border-left-color:var(--w-hi);
+  margin:0 0 6px;padding:5px 7px 7px;background:var(--w-screen);
 }
-.ginstr b{color:#6b4e05}
+.g-group>legend{font-size:11px;font-weight:bold;color:var(--w-blue);padding:0 3px}
+.g-group .g-gridwrap{margin:0}
 
-/* Group box (fieldset) */
-.ggroup{
-  border:1px solid #a9bbcb;border-radius:2px;padding:10px 12px 12px;margin:0 0 10px;
-  background:#fbfdff;
-}
-.ggroup>legend{
-  font-size:11.5px;font-weight:800;color:#0a246a;padding:0 5px;letter-spacing:.2px;
-}
 /* label / input rows */
-.gfields{display:flex;flex-direction:column;gap:5px}
-.gfields.cols2{display:grid;grid-template-columns:1fr 1fr;gap:5px 18px}
-.gfields.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:5px 18px}
-.gf{display:flex;align-items:flex-start;gap:6px;min-height:24px}
-.gf-l{
-  flex:0 0 168px;text-align:right;font-size:12.5px;color:var(--gui-key);
-  font-weight:600;padding-top:4px;line-height:1.25;
+.g-row{display:flex;align-items:center;gap:4px;min-height:19px;margin:1px 0}
+.g-lab{
+  flex:0 0 152px;text-align:right;font-size:11px;color:var(--w-label);
+  padding-right:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.gfields.cols2 .gf-l,.gfields.cols3 .gf-l{flex:0 0 132px}
-.gf-asterix{color:#c00;margin-left:2px;font-weight:800}
-.gf-c{flex:1;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.gf-i{
-  width:100%;max-width:290px;
-  border:1px solid #6b7f93;background:var(--gui-field);
-  box-shadow:inset 1px 1px 0 #c3d0dc;
-  font-family:var(--gui-mono);font-size:12.5px;color:#0b1220;
-  padding:3px 5px;outline:none;border-radius:0;
+.g-req{color:#a00000;font-weight:bold;margin-left:1px}
+.g-ctl{flex:1;min-width:0;display:flex;align-items:center;gap:3px;flex-wrap:wrap}
+.g-inp{
+  width:150px;height:17px;
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:var(--w-inp);font-family:"Courier New",monospace;font-size:11px;
+  color:#000;padding:0 2px;outline:none;
 }
-select.gf-i{max-width:290px;font-family:var(--gui-font);font-size:12px;padding:2px 4px}
-.gf-i:focus{background:#fff;border-color:#0a246a;box-shadow:inset 1px 1px 0 #c3d0dc,0 0 0 1px #9fc0e0}
-.gf-i.invalid,.ggrid-i.invalid{background:#ffecec;border-color:#b42318}
-.gf-i::placeholder{color:#8fa3b5;font-family:var(--gui-font);font-size:11.5px}
-.gf-unit{font-family:var(--gui-mono);font-size:11.5px;color:#33506a}
-.gf-hint{font-size:10.5px;color:#5b7086;flex:1 1 100%}
-.gf-ro{
-  font-family:var(--gui-mono);font-size:12.5px;color:#0b1220;
-  background:#eef2f6;border:1px solid #c3d0dc;padding:3px 5px;min-width:120px;display:inline-block;
+.g-inp:focus{background:#fffef0;outline:1px dotted #000;outline-offset:-2px}
+.g-inp.invalid,.g-cell.invalid{background:#ffd6d6}
+.g-inp::placeholder{color:#909090;font-family:Arial;font-size:10px}
+.g-sel{
+  width:auto;min-width:150px;height:18px;font-family:Arial;font-size:11px;padding:0 1px;
+}
+.g-unit{font-size:10px;color:#333;font-family:"Courier New",monospace}
+.g-ro{
+  display:inline-block;min-width:110px;background:#e4e0d8;
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  font-family:"Courier New",monospace;font-size:11px;padding:0 2px;height:17px;line-height:16px;
 }
 
-/* SAP grid (ALV-like) */
-.ggrid{overflow:auto;border:1px solid #93a7b9;background:#fff;margin-bottom:10px}
-.ggrid table{border-collapse:collapse;width:100%;min-width:540px;font-size:12px}
-.ggrid th{
-  background:linear-gradient(180deg,#e8eef5,#cfdae5);
-  color:#0a246a;font-size:11px;font-weight:800;text-align:left;
-  padding:4px 7px;border-right:1px solid #a9bbcb;border-bottom:1px solid #8fa3b5;
+/* screen title line */
+.g-titleline{
+  display:flex;align-items:baseline;gap:8px;
+  background:var(--w-screen);border-bottom:1px solid var(--w-sh);
+  padding:4px 8px 3px;
+}
+.g-title-l{font-weight:bold;font-size:11px;color:var(--w-blue)}
+.g-title-spacer{flex:1}
+.g-title-r{font-family:"Courier New",monospace;font-size:11px;color:#333}
+
+/* tabstrip */
+.g-tabs{
+  display:flex;gap:0;flex-wrap:wrap;
+  background:var(--w-face);border-bottom:1px solid var(--w-sh);
+  padding:3px 4px 0;
+}
+.g-tab{
+  font-size:11px;color:#000;padding:2px 10px 2px;
+  background:var(--w-face);
+  border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-dk);border-bottom:1px solid var(--w-dk);
+  margin-right:2px;cursor:default;white-space:nowrap;
+}
+.g-tab.on{
+  background:var(--w-screen);font-weight:bold;
+  border-bottom-color:var(--w-screen);
+  margin-bottom:-1px;padding-bottom:3px;
+}
+
+/* scrollable screen body */
+.g-scroll{padding:6px 8px;flex:1;overflow:auto;min-height:300px}
+
+/* instruction strip (SAP-ish list heading, not a coloured banner) */
+.g-instr{
+  border-bottom:1px dotted #808080;padding:0 0 5px;margin:0 0 7px;
+  font-size:11px;color:#000;line-height:1.45;
+}
+.g-instr b{color:var(--w-blue)}
+
+/* SAP grid */
+.g-gridwrap{
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:#fff;overflow:auto;margin:0 0 6px;
+}
+.g-grid{border-collapse:collapse;width:100%;min-width:520px;font-size:11px}
+.g-grid th{
+  background:var(--w-face);color:#000;font-size:11px;font-weight:bold;text-align:left;
+  padding:1px 5px;border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
+  white-space:nowrap;
+}
+.g-grid td{
+  padding:1px 5px;border-right:1px solid #d8d8d8;border-bottom:1px solid #d8d8d8;
+  height:17px;vertical-align:middle;white-space:nowrap;
+}
+.g-grid tbody tr:hover td{background:#e8eef7}
+.g-grid tbody tr.sel td{background:var(--w-sel);color:#fff}
+.g-cell{
+  width:100%;min-width:48px;height:16px;border:1px solid transparent;background:transparent;
+  font-family:"Courier New",monospace;font-size:11px;color:#000;padding:0 2px;outline:none;
+}
+.g-cell:hover{background:#fff;border-color:#a0a0a0}
+.g-cell:focus{background:#fffef0;border-color:#000}
+.g-grid a{color:var(--w-blue);text-decoration:underline;cursor:pointer}
+
+/* totals */
+.g-total{
+  display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;
+  border-top:1px solid var(--w-sh);border-bottom:1px solid var(--w-hi);
+  background:var(--w-face2);padding:2px 8px;margin:0 0 6px;font-size:11px;
+}
+.g-total b{font-family:"Courier New",monospace;font-size:11px;color:#000}
+
+/* message line */
+.g-msgline{
+  display:flex;align-items:center;gap:4px;
+  border-top:1px solid var(--w-sh);background:var(--w-screen);
+  padding:3px 7px;font-size:11px;color:#000;margin-top:auto;
+}
+.g-msgico{width:11px;height:11px;flex:0 0 11px;border:1px solid #666;background:#f0f0f0;display:inline-block}
+.g-msgico.ok{background:#32a852;border-color:#0b6b2f}
+.g-msgico.err{background:#d02020;border-color:#7a0000}
+.g-msgico.info{background:#f0c040;border-color:#7a5c00}
+.gsys{line-height:1.35}
+.gsys-ok{color:#004000}
+.gsys-err{color:#900000}
+.gsys-info{color:#000}
+.spin{
+  width:10px;height:10px;border:1px solid #808080;border-top-color:#0a246a;
+  border-radius:50% !important;display:inline-block;animation:spin .7s linear infinite;
+}
+
+/* push buttons */
+.g-btnrow{display:flex;gap:5px;flex-wrap:wrap;align-items:center;padding:4px 0 6px}
+.g-spacer{flex:1}
+.g-btn{
+  min-width:70px;height:21px;padding:0 10px;font-family:Arial;font-size:11px;
+  background:var(--w-face);color:#000;
+  border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
+  cursor:default;
+}
+.g-btn:hover{background:#e8e4dc}
+.g-btn:active, .g-btn.g-btn-def{
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+}
+.g-btn.g-btn-def{background:#dfe6ef;font-weight:bold}
+.g-btn:active{background:#c8c4bc;font-weight:normal}
+.g-btn:disabled{color:#808080;text-shadow:1px 1px 0 #fff}
+
+/* small utility tables */
+.g-mini{width:100%;border-collapse:collapse;font-size:11px}
+.g-mini td{padding:0 3px;height:16px;border-bottom:1px solid #e0e0e0}
+.g-mini tr:hover td{background:#e8eef7;cursor:default}
+.g-mono{font-family:"Courier New",monospace}
+.g-note{padding:2px 3px;color:#555;font-size:10px}
+
+/* success screen */
+.g-success{border:1px solid var(--w-sh);background:#fff;padding:8px 10px;margin:0 0 6px}
+.g-success-h{font-weight:bold;color:#004000;font-size:11px;font-family:"Courier New",monospace;margin-bottom:3px}
+.g-success-b{color:#333;font-size:11px}
+
+/* guided help pane */
+.g-help{
+  border-left:1px solid var(--w-sh);background:var(--w-face2);
+  display:flex;flex-direction:column;min-width:0;
+}
+.g-help-head{
+  background:var(--w-face);border-bottom:1px solid var(--w-sh);
+  padding:2px 6px;font-weight:bold;font-size:11px;color:var(--w-blue);
+}
+.g-help-sub{padding:3px 6px;font-size:10px;color:#333;border-bottom:1px solid #c8c4bc;
+  font-family:"Courier New",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-help-steps{padding:3px 0;border-bottom:1px solid #c8c4bc}
+.g-help-step{display:flex;align-items:center;gap:4px;height:17px;padding:0 5px;font-size:11px;color:#444}
+.g-hs-n{
+  width:13px;height:13px;flex:0 0 13px;display:grid;place-items:center;
+  border:1px solid #808080;background:#fff;font-size:9px;color:#333;
+}
+.g-help-step.done{color:#004000}
+.g-help-step.done .g-hs-n{background:#32a852;border-color:#0b6b2f;color:#fff}
+.g-help-step.cur{background:#fff;font-weight:bold;color:#000}
+.g-help-step.cur .g-hs-n{background:var(--w-blue);border-color:#061a45;color:#fff}
+.g-hs-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.g-help-task{padding:5px 6px;font-size:11px;color:#000;border-bottom:1px solid #c8c4bc;line-height:1.4}
+.g-help-instr{
+  padding:5px 6px 5px 16px;font-size:10.5px;color:#333;line-height:1.45;
+  border-bottom:1px solid #c8c4bc;position:relative;
+}
+.g-help-instr::before{content:"•";position:absolute;left:7px;color:#666}
+.g-help-btns{display:flex;gap:3px;padding:5px 5px 3px;flex-wrap:wrap}
+.g-help-btns .g-btn{flex:1 1 auto;min-width:0;padding:0 4px;height:20px}
+.g-help-foot{padding:4px 6px;font-size:9.5px;color:#555;line-height:1.4;border-top:1px solid #e0dcd4}
+
+/* status bar */
+.g-status{
+  display:flex;align-items:center;height:20px;
+  background:var(--w-face);border-top:1px solid var(--w-hi);
+  font-size:11px;color:#000;padding:0;
+}
+.g-status .st-ico{
+  width:20px;display:grid;place-items:center;align-self:stretch;
+  border-right:1px solid var(--w-sh);font-size:10px;
+}
+.g-status .st-msg{padding:0 6px;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.g-status .st-cell{
+  padding:0 7px;align-self:stretch;display:flex;align-items:center;
+  border-left:1px solid var(--w-sh);border-right:1px solid var(--w-hi);
+  font-size:10px;color:#333;white-space:nowrap;
+}
+.g-status .st-user{font-weight:bold}
+
+/* responsive */
+@media(max-width:1120px){
+  .g-easy{grid-template-columns:1fr}
+  .g-treebox{border-right:0;border-bottom:1px solid var(--w-sh);min-height:0}
+  .g-tree-scroll{max-height:220px}
+  .g-sim{grid-template-columns:1fr}
+  .g-help{border-left:0;border-top:1px solid var(--w-sh)}
+  .g-work-inner{grid-template-columns:1fr}
+}
+@media(max-width:680px){
+  body[data-mode="gui"]{padding:0}
+  .g-frame{border-left:0;border-right:0}
+  .g-lab{flex:0 0 118px;font-size:10.5px}
+  .g-cmd{width:150px}
+  .g-tb{width:22px;height:20px}
+  .g-status .st-cell.hide-s{display:none}
+  .g-help-steps{max-height:120px;overflow:auto}
+}
+
+/* =====================================================================
+   SAP-FLAT COMPATIBILITY LAYER
+   The guided content still emits a few legacy class names; restyle them
+   so GUI mode never shows a modern card, chip, pill or gradient.
+   ========================================================================= */
+body[data-mode="gui"] .ggrid{
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:#fff;overflow:auto;margin:0 0 6px;
+  box-shadow:none;
+}
+body[data-mode="gui"] .ggrid table{border-collapse:collapse;width:100%;min-width:520px;font-size:11px}
+body[data-mode="gui"] .ggrid th{
+  background:var(--w-face);color:#000;font-size:11px;font-weight:bold;text-align:left;
+  padding:1px 5px;border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
   white-space:nowrap;text-transform:none;letter-spacing:0;
 }
-.ggrid td{
-  padding:2px 6px;border-right:1px solid #e2e9f0;border-bottom:1px solid #e2e9f0;
-  vertical-align:middle;height:23px;
+body[data-mode="gui"] .ggrid td{
+  padding:1px 5px;border-right:1px solid #d8d8d8;border-bottom:1px solid #d8d8d8;
+  height:17px;vertical-align:middle;background:none;color:#000;
 }
-.ggrid tbody tr:nth-child(even) td{background:#f7fafd}
-.ggrid tbody tr:hover td{background:var(--gui-sel)}
-.ggrid-i{
-  width:100%;min-width:56px;border:1px solid transparent;background:transparent;
-  font-family:var(--gui-mono);font-size:12px;color:#0b1220;padding:2px 4px;outline:none;
+body[data-mode="gui"] .ggrid tbody tr:hover td{background:#e8eef7}
+body[data-mode="gui"] .ggrid td input{
+  width:100%;min-width:48px;height:16px;border:1px solid transparent;background:transparent;
+  font-family:"Courier New",monospace;font-size:11px;color:#000;padding:0 2px;outline:none;
 }
-.ggrid-i:hover{border-color:#c3d0dc;background:#fff}
-.ggrid-i:focus{border-color:#0a246a;background:#fff}
-.ggrid-i::placeholder{color:#93a7b9;font-family:var(--gui-font);font-size:11px}
-.ggrid a{color:var(--gui-blue);text-decoration:underline;cursor:pointer;font-weight:600}
+body[data-mode="gui"] .ggrid td input:hover{background:#fff;border-color:#a0a0a0}
+body[data-mode="gui"] .ggrid td input:focus{background:#fffef0;border-color:#000}
+body[data-mode="gui"] .ggrid td input.invalid{background:#ffd6d6}
+body[data-mode="gui"] .ggrid .ro{font-family:"Courier New",monospace;font-weight:bold;color:#000}
 
-/* Totals row like SAP's */
-.gtotal{
-  display:flex;justify-content:flex-end;align-items:center;gap:8px;flex-wrap:wrap;
-  border:1px solid #a9bbcb;background:#f2f7fb;padding:5px 10px;margin-bottom:10px;font-size:12.5px;
+body[data-mode="gui"] .ggroup{
+  border:1px solid var(--w-sh);border-top-color:var(--w-hi);border-left-color:var(--w-hi);
+  margin:0 0 6px;padding:5px 7px 7px;background:var(--w-screen);border-radius:0;box-shadow:none;
 }
-.gtotal b{font-family:var(--gui-mono);font-size:13.5px;color:#0a246a}
-.gtotal .gsep{width:12px}
+body[data-mode="gui"] .ggroup>legend{font-size:11px;font-weight:bold;color:var(--w-blue);padding:0 3px}
+body[data-mode="gui"] .gfields{display:flex;flex-direction:column;gap:0}
+body[data-mode="gui"] .gfields.cols2,
+body[data-mode="gui"] .gfields.cols3{display:flex;flex-direction:column;gap:0}
 
-/* Message line at the bottom of the screen */
-.gmsgrow{
-  display:flex;align-items:center;gap:6px;
-  border-top:1px solid #c3d0dc;background:#f4f7fa;
-  padding:5px 8px;font-size:12px;color:#3b556d;margin-top:auto;
+body[data-mode="gui"] .field{display:flex;align-items:center;min-height:19px;margin:1px 0;gap:4px}
+body[data-mode="gui"] .field>label{
+  flex:0 0 152px;text-align:right;font-size:11px;color:var(--w-label);
+  font-weight:normal;padding-right:3px;margin:0;letter-spacing:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.gmsg-dot{width:9px;height:9px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 2px #d6f0de;flex:0 0 auto}
-.gsys{display:flex;align-items:center;gap:6px;line-height:1.35}
-.gsys-ok{color:#0a5c2a}.gsys-err{color:#9b1c1c}.gsys-info{color:#0a3f78}
-.gsys-ok .gmsg-dot{background:#22c55e}.gsys-err .gmsg-dot{background:#dc2626}.gsys-info .gmsg-dot{background:#2563eb}
-.gmsg-ico{flex:0 0 auto}
-.spin{width:13px;height:13px;border:2px solid #bcd0e2;border-top-color:#0a6ed1;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+body[data-mode="gui"] .field>label .req{color:#a00000;font-weight:bold}
+body[data-mode="gui"] .field>input,
+body[data-mode="gui"] .field>select{
+  flex:0 1 auto;width:170px;height:17px;padding:0 2px;
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background:#fff;font-family:"Courier New",monospace;font-size:11px;color:#000;
+  outline:none;border-radius:0;box-shadow:none;
+}
+body[data-mode="gui"] .field>select{font-family:Arial;width:auto;min-width:170px;height:18px}
+body[data-mode="gui"] .field>input:focus,
+body[data-mode="gui"] .field>select:focus{
+  background:#fffef0;box-shadow:none;border-color:var(--w-sh);outline:1px dotted #000;outline-offset:-2px;
+}
+body[data-mode="gui"] .field>input.invalid{background:#ffd6d6}
+body[data-mode="gui"] .field .hint{
+  flex:1 1 auto;margin:0 0 0 5px;font-size:10px;color:#555;line-height:1.3;
+}
+body[data-mode="gui"] .field .hint code,
+body[data-mode="gui"] .tip code{
+  font-family:"Courier New",monospace;background:none;border:0;padding:0;color:#000;font-weight:bold;
+}
+body[data-mode="gui"] .tip{font-size:10.5px;color:#333;line-height:1.45;margin:4px 0}
+body[data-mode="gui"] .tip b{color:var(--w-blue)}
+body[data-mode="gui"] .form-grid{display:flex;flex-direction:column;gap:0;margin:0 0 6px}
 
-/* Button row (SAP pushbuttons) */
-.gbtnrow{display:flex;gap:6px;flex-wrap:wrap;padding:4px 0 10px;align-items:center}
-.gbtn-spacer{flex:1}
-.gbtn{
-  border:1px solid #7b8fa3;background:linear-gradient(180deg,#fdfefe,#e3ebf2);
-  color:#12283d;font-size:12.5px;font-weight:600;padding:4px 14px;border-radius:3px;
-  box-shadow:0 1px 0 #fff inset;min-height:26px;
+body[data-mode="gui"] .total-row,
+body[data-mode="gui"] .gtotal{
+  display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;
+  border-top:1px solid var(--w-sh);border-bottom:1px solid var(--w-hi);
+  border-left:0;border-right:0;background:var(--w-face2);
+  padding:2px 8px;margin:0 0 6px;font-size:11px;border-radius:0;box-shadow:none;
 }
-.gbtn:hover{background:linear-gradient(180deg,#fff,#d5e3f0);border-color:#0a246a}
-.gbtn:active{background:#c9dcee;box-shadow:inset 1px 1px 2px rgba(0,0,0,.18)}
-.gbtn:disabled{opacity:.5}
-.gbtn-enter{
-  border-color:#0a5c2a;background:linear-gradient(180deg,#2e9e5b,#107e3e);color:#fff;
-  box-shadow:0 1px 0 rgba(255,255,255,.35) inset;
-}
-.gbtn-enter:hover{background:linear-gradient(180deg,#37b169,#0d6c34);border-color:#08502a}
-
-/* Value-help / tip box */
-.gvaluehelp{
-  background:#fffbe6;border:1px solid #d9c27a;border-radius:2px;
-  padding:7px 10px;font-size:12px;color:#5a4708;line-height:1.45;
+body[data-mode="gui"] .total-row b,
+body[data-mode="gui"] .gtotal b{
+  font-family:"Courier New",monospace;font-size:11px;color:#000;font-weight:bold;
 }
 
-/* Success screen */
-.gbox{border:1px solid #a9bbcb;background:#fbfdff;padding:14px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start}
-.gbox-success{background:#f2fbf5;border-color:#9fd3b0}
-.gsuccess-ico{
-  width:42px;height:42px;flex:0 0 42px;border-radius:50%;display:grid;place-items:center;
-  background:#107e3e;color:#fff;font-size:22px;font-weight:800;box-shadow:0 0 0 4px #d8f0e1;
+body[data-mode="gui"] .display-block{
+  border:1px solid var(--w-sh);border-top-color:var(--w-hi);border-left-color:var(--w-hi);
+  background:#fff;padding:5px 7px;margin:0 0 6px;border-radius:0;box-shadow:none;
 }
-.gsuccess-txt b{font-size:14px;color:#0a5c2a;font-family:var(--gui-mono)}
-.gsuccess-txt p{margin:4px 0 0;font-size:12.5px;color:#33506a}
+body[data-mode="gui"] .display-block h5{
+  font-size:11px;font-weight:bold;color:var(--w-blue);margin:0 0 4px;
+  text-transform:none;letter-spacing:0;
+}
+body[data-mode="gui"] .kv{
+  display:flex;justify-content:space-between;gap:8px;font-size:11px;
+  padding:0;border-bottom:1px dotted #c0c0c0;line-height:17px;
+}
+body[data-mode="gui"] .kv:last-child{border-bottom:0}
+body[data-mode="gui"] .kv span{color:#333}
+body[data-mode="gui"] .kv b{color:#000;font-family:"Courier New",monospace;font-weight:bold}
 
-/* ---------- SAP Easy Access tree (home) ---------- */
-.geasy-access{background:#fff;border:1px solid #93a7b9;display:flex;flex-direction:column;min-height:420px}
-.gtree-head{
-  display:flex;align-items:center;gap:6px;
-  background:linear-gradient(180deg,#e8eef5,#cfdae5);border-bottom:1px solid #8fa3b5;
-  padding:5px 8px;font-size:12px;color:#0a246a;
+body[data-mode="gui"] .balance-box{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  border:1px solid var(--w-sh);background:var(--w-face2);
+  padding:3px 7px;margin:0 0 6px;border-radius:0;box-shadow:none;
+  font-size:11px;color:#000;
 }
-.gtree-spacer{flex:1}
-.gtree-fav{font-size:11px;color:#8a5a00;background:#fff3cd;border:1px solid #e0c877;border-radius:9px;padding:0 7px;font-weight:800}
-.gtree{padding:4px 2px 8px;overflow:auto;max-height:520px;font-size:12.5px}
-.gtree-node{
-  display:flex;align-items:center;gap:4px;padding:1.5px 6px;cursor:pointer;white-space:nowrap;
-  border:1px dotted transparent;
+body[data-mode="gui"] .balance-box.ok{background:#e8f4e8;border-color:#4a8a4a;color:#004000}
+body[data-mode="gui"] .balance-box.bad{background:#fbe8e8;border-color:#a04040;color:#900000}
+body[data-mode="gui"] .balance-box .traffic{
+  width:11px;height:11px;border:1px solid #666;box-shadow:none;border-radius:50% !important;
 }
-.gtree-node:hover{background:var(--gui-sel);border-color:#9fc0e0}
-.gtree-node.active{background:#0a6ed1;color:#fff}
-.gtree-node.active .gtree-tc{background:#0757a6;color:#dbeafe;border-color:#4b93d8}
-.gtree-arrow{width:11px;color:#4b6478;font-size:10px;flex:0 0 11px}
-.gtree-ico{font-size:11px;flex:0 0 14px}
-.gtree-lab{overflow:hidden;text-overflow:ellipsis}
-.gtree-tc{
-  margin-left:auto;font-family:var(--gui-mono);font-size:10px;font-weight:700;
-  background:#eef3f8;border:1px solid #b9c9d8;border-radius:8px;padding:0 6px;color:#28455f;
-}
-.gtree-ok{color:#107e3e;font-weight:800}
-.gtree-node.l0{padding-left:6px;font-size:13px}
-.gtree-node.l1{padding-left:18px}
-.gtree-node.l2{padding-left:34px}
-.gtree-node.l3{padding-left:50px}
+body[data-mode="gui"] .balance-box .traffic.green{background:#32a852}
+body[data-mode="gui"] .balance-box .traffic.red{background:#d02020}
+body[data-mode="gui"] .balance-box b{font-family:"Courier New",monospace;font-size:11px}
 
-/* Work area next to the tree */
-.gworkarea{background:#fff;border:1px solid #93a7b9;min-height:420px;display:flex;flex-direction:column}
-.gwork-cols{display:grid;grid-template-columns:1fr 268px;gap:12px;padding:10px 12px}
-.gmenu-title{font-size:14px;font-weight:800;color:#0a246a;margin:0 0 8px}
-.gwork-list{display:flex;flex-direction:column;gap:2px}
-.gwork-row{
-  display:flex;align-items:center;gap:9px;padding:6px 8px;cursor:pointer;
-  border:1px solid transparent;border-radius:2px;
+body[data-mode="gui"] .atp-box{
+  background:#f4f4f4;border:1px solid #a0a0a0;padding:5px 7px;margin:0 0 6px;border-radius:0;
+  font-size:11px;color:#000;
 }
-.gwork-row:hover{background:var(--gui-sel);border-color:#9fc0e0}
-.gwr-ico{font-size:15px;flex:0 0 20px;text-align:center}
-.gwr-lab{flex:1;min-width:0;line-height:1.3}
-.gwr-lab b{font-size:12.5px;color:#0a246a}
-.gwr-lab small{display:block;font-size:11px;color:#5b7086}
-.gwr-tc{font-family:var(--gui-mono);font-size:10.5px;font-weight:800;background:#0a246a;color:#dbeafe;padding:1px 7px;border-radius:8px}
-.gwork-sep{
-  font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;
-  color:#5b7086;border-bottom:1px solid #dbe3ec;margin:10px 0 4px;padding-bottom:3px;
+body[data-mode="gui"] .stock-bar{
+  height:10px;background:#fff;border:1px solid var(--w-sh);overflow:hidden;margin:3px 0;border-radius:0;
 }
-.gwork-side{display:flex;flex-direction:column;gap:10px}
-.gside-box{border:1px solid #a9bbcb;background:#fbfdff}
-.gside-head{
-  background:linear-gradient(180deg,#eef3f8,#dde6ee);border-bottom:1px solid #a9bbcb;
-  padding:3px 8px;font-size:11px;font-weight:800;color:#0a246a;text-transform:uppercase;letter-spacing:.4px;
+body[data-mode="gui"] .stock-bar>div{height:100%;background:#316ac5;transition:none}
+body[data-mode="gui"] .print-preview{
+  background:#fff;border:1px solid #808080;padding:8px 10px;max-width:520px;
+  margin:0 0 6px;box-shadow:none;border-radius:0;font-size:11px;
 }
-.gside-table{width:100%;border-collapse:collapse;font-size:11.5px}
-.gside-table td{padding:3px 8px;border-bottom:1px solid #e6edf4;color:#33506a}
-.gside-table td:last-child{text-align:right}
-.gside-empty{padding:10px 8px;font-size:11.5px;color:#7b8ea1}
-.grow-link{cursor:pointer}
-.grow-link:hover td{background:var(--gui-sel)}
-.gtd-fav a{color:var(--gui-blue);text-decoration:underline;cursor:pointer}
-.gtd-tc{font-family:var(--gui-mono);font-weight:700;color:#0a246a}
-.gtd-st{font-size:11px;color:#5b7086}
-.gstatusarea{border:1px solid #93a7b9;border-top:0;background:#fff}
-.gstatus-auto{
-  background:#eef3f8;border-bottom:1px solid #cfdae5;padding:3px 8px;
-  font-size:11px;font-weight:800;color:#0a246a;
-}
-.gstatusarea .ggrid{margin:0;border:0}
+body[data-mode="gui"] .print-preview h4{font-size:11px;text-align:center;margin:0 0 3px}
+body[data-mode="gui"] .print-preview .pp-head{border-bottom:1px solid #000;padding-bottom:4px;margin-bottom:5px;text-align:center}
+body[data-mode="gui"] .print-preview th{background:var(--w-face);color:#000;font-size:10px}
+body[data-mode="gui"] .print-preview td{font-size:10px;border-bottom:1px solid #d0d0d0}
+body[data-mode="gui"] .print-preview table{min-width:0}
 
-/* ---------- Right-hand guided panel (GUI) ---------- */
-.gtabs+.gscreen-scroll{padding-top:8px}
-.gsim-screen{min-width:0}
-.gteam{
-  border:1px solid #8fa3b5;background:#f4f8fb;display:flex;flex-direction:column;
-  font-size:12px;position:sticky;top:10px;
-}
-.gteam-head{
-  background:linear-gradient(180deg,var(--gui-title2),var(--gui-title));
-  color:#fff;font-weight:800;font-size:11.5px;padding:5px 9px;letter-spacing:.3px;
-}
-.gteam-sub{padding:5px 9px;font-size:11px;color:#33506a;border-bottom:1px solid #cfdae5;background:#e8eff6}
-.gteam-prog{height:5px;background:#cfdae5}
-.gteam-prog>div{height:100%;background:linear-gradient(90deg,#0a6ed1,#22c55e);transition:width .3s}
-.gteam-body{padding:5px 6px;display:flex;flex-direction:column;gap:1px}
-.gteam-step{display:flex;align-items:center;gap:6px;padding:3px 4px;color:#456;border:1px solid transparent}
-.gteam-step .gts-n{
-  width:17px;height:17px;flex:0 0 17px;border-radius:50%;display:grid;place-items:center;
-  background:#dde6ee;border:1px solid #a9bbcb;font-size:10px;font-weight:800;color:#456;
-}
-.gteam-step.done{color:#0a5c2a}
-.gteam-step.done .gts-n{background:#107e3e;border-color:#0a5c2a;color:#fff}
-.gteam-step.cur{background:#fff;border-color:#0a6ed1;color:#0a246a;font-weight:700}
-.gteam-step.cur .gts-n{background:#0a6ed1;border-color:#0854a0;color:#fff}
-.gts-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px}
-.gteam-task{padding:7px 9px;border-top:1px solid #cfdae5;font-size:11.5px;color:#33506a;line-height:1.4}
-.gteam-task b{color:#0a246a}
-.gteam-instr{margin:0;padding:6px 10px 6px 26px;font-size:11.5px;color:#33506a;line-height:1.45;border-top:1px solid #e6edf4}
-.gteam-actions{display:flex;flex-wrap:wrap;gap:4px;padding:7px 8px;border-top:1px solid #cfdae5}
-.gteam-actions .gbtn{flex:1 1 auto;padding:3px 8px;font-size:11.5px;min-width:0}
-.gteam-foot{padding:6px 9px;font-size:10.5px;color:#5b7086;border-top:1px solid #e6edf4;background:#eef3f8}
+/* strip decorative emoji glyphs that reach the screen from content strings */
+body[data-mode="gui"] .g-screen *{text-shadow:none}
 
-/* ---------- SAP status bar ---------- */
-.gui-statusbar{
-  display:flex;align-items:center;gap:0;
-  background:linear-gradient(180deg,#eef2f6,#dbe3ea);
-  border-top:1px solid #8fa3b5;font-size:11.5px;color:#12283d;
-  padding:0;min-height:24px;flex-wrap:nowrap;overflow:hidden;
+/* ---- SAP value-help (F4) select: square, grey arrow button, no OS chrome ---- */
+body[data-mode="gui"] select,
+body[data-mode="gui"] .g-sel,
+body[data-mode="gui"] .field>select{
+  -webkit-appearance:none;-moz-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,#000 50%),linear-gradient(135deg,#000 50%,transparent 50%);
+  background-position:calc(100% - 9px) 7px, calc(100% - 5px) 7px;
+  background-size:4px 4px,4px 4px;background-repeat:no-repeat;
+  padding-right:18px;height:17px;
+  border-top:1px solid var(--w-sh);border-left:1px solid var(--w-sh);
+  border-right:1px solid var(--w-hi);border-bottom:1px solid var(--w-hi);
+  background-color:#fff;font-family:Arial;font-size:11px;color:#000;
 }
-.gsb-sys{
-  width:34px;display:grid;place-items:center;align-self:stretch;
-  background:linear-gradient(180deg,#e2e9f0,#cdd8e2);border-right:1px solid #a9bbcb;font-size:10px;
-}
-.gsb-msg{
-  padding:3px 9px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-size:11.5px;
-}
-.gsb-spacer{flex:0 0 auto}
-.gsb-c{
-  padding:3px 9px;border-left:1px solid #b9c9d8;font-family:var(--gui-mono);
-  font-size:10.5px;color:#28455f;white-space:nowrap;
-}
-.gsb-user{font-weight:800;color:#0a246a}
-.gui-hintline{
-  max-width:1420px;margin:8px auto 0;text-align:center;font-size:11px;color:#eaf3fb;
-  text-shadow:0 1px 2px rgba(0,0,0,.35);font-family:var(--gui-font);
-}
-.gui-hintline b{color:#fff}
 
-/* Responsive: stack the tree / guided panel */
-@media(max-width:1100px){
-  .geasy-wrap{grid-template-columns:1fr}
-  .gsim-wrap{grid-template-columns:1fr}
-  .gtree{max-height:260px}
-  .gteam{position:static;order:-1}
-  .gwork-cols{grid-template-columns:1fr}
+/* native scrollbars, squared off inside the window */
+body[data-mode="gui"] .g-scroll::-webkit-scrollbar,
+body[data-mode="gui"] .g-tree-scroll::-webkit-scrollbar,
+body[data-mode="gui"] .g-gridwrap::-webkit-scrollbar{width:16px;height:16px;background:#f0f0f0}
+body[data-mode="gui"] .g-scroll::-webkit-scrollbar-thumb,
+body[data-mode="gui"] .g-tree-scroll::-webkit-scrollbar-thumb,
+body[data-mode="gui"] .g-gridwrap::-webkit-scrollbar-thumb{
+  background:var(--w-face);border-top:1px solid var(--w-hi);border-left:1px solid var(--w-hi);
+  border-right:1px solid var(--w-sh);border-bottom:1px solid var(--w-sh);
 }
-@media(max-width:640px){
-  .sapdesktop{padding:8px 8px 12px}
-  .sapwin{min-height:calc(100vh - 60px)}
-  .saptoolbar{padding:3px 4px}
-  .gtb-btn{min-width:40px;padding:2px 3px}
-  .gtb-btn .gtb-lbl{font-size:9px;max-width:52px}
-  .gtb-btn.mode,.gtb-btn.mode-flip{min-width:0}
-  .gf-l{flex:0 0 118px;font-size:12px}
-  .gcmd-box{flex:1 1 auto;min-width:0}
-  .gfields.cols2,.gfields.cols3{grid-template-columns:1fr}
-  .gmenu-conn{display:none}
-  .gsb-c{padding:3px 6px}
-  .gsb-c:nth-of-type(2),.gsb-c:nth-of-type(3){display:none}
+
+/* tighten every text run so the screen reads dense like the real client */
+body[data-mode="gui"] .g-screen{line-height:1.32}
+body[data-mode="gui"] .g-screen b{font-weight:bold}
+body[data-mode="gui"] .g-screen p{margin:0 0 4px}
+body[data-mode="gui"] .g-scroll>*+*{margin-top:5px}
+body[data-mode="gui"] .g-instr{padding-bottom:4px;margin-bottom:5px}
+
+/* window chrome: crisper, less "glassy" */
+body[data-mode="gui"] .g-wintitle{
+  background:#0a246a;
+  background-image:linear-gradient(90deg,#0a246a 0%,#4a7ebb 100%);
+  padding:1px 3px;
 }
-/* GUI mode: kill the launchpad chrome if any legacy block remains */
-body[data-mode="gui"] .topbar,body[data-mode="gui"] .favbar,body[data-mode="gui"] .cmdbar{display:none}
-body[data-mode="gui"]{background:#6f8fae}
+body[data-mode="gui"] .g-frame{border:1px solid #000;background:#d4d0c8}
+body[data-mode="gui"] .g-menubar{background:#d4d0c8;border-bottom:1px solid #808080}
+body[data-mode="gui"] .g-toolbar{background:#d4d0c8;border-bottom:1px solid #808080}
+body[data-mode="gui"] .g-cmdrow{background:#d4d0c8;border-bottom:1px solid #808080}
+body[data-mode="gui"] .g-tabs{background:#d4d0c8}
+body[data-mode="gui"] .g-help{background:#d4d0c8}
+body[data-mode="gui"] .g-help-head{background:#d4d0c8;border-bottom:1px solid #808080}
+body[data-mode="gui"] .g-status{background:#d4d0c8}
+
+/* collapsible guided panel: collapsed by default so the SAP screen dominates */
+body[data-mode="gui"] .g-sim{grid-template-columns:1fr 26px}
+body[data-mode="gui"] .g-sim:has(.g-help:not(.g-help-min)){grid-template-columns:1fr 216px}
+body[data-mode="gui"] .g-help-min{background:var(--w-face);align-items:center}
+body[data-mode="gui"] .g-help-min .g-help-head{
+  width:100%;text-align:center;cursor:pointer;padding:2px 0;
+  font-weight:bold;color:var(--w-blue);
+}
+body[data-mode="gui"] .g-help-min .g-help-head:hover{background:#e8e4dc}
+body[data-mode="gui"] .g-help-vert{
+  writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;letter-spacing:1px;
+  color:#666;padding:6px 0;font-family:Arial;
+}
+body[data-mode="gui"] .g-help-head{cursor:pointer}
+body[data-mode="gui"] .g-help-head:hover{background:#e8e4dc}
