@@ -70,12 +70,24 @@ function today(){ return '11/10/2026'; }
 
 /* ================= SCENARIOS =================
    Each step: title, desc, instruction, body(), autofill{}, primary? */
+/* ---- layout wrappers: SAP group boxes in GUI mode, cards in Fiori ---- */
+function fgOpen(){
+  return state.mode==='gui' ? '<fieldset class="ggroup"><legend>Data</legend><div class="gfields">' : '<div class="form-grid">';
+}
+function fgEnd(){ return '</div>'; }               // both modes close with a div
+function gtOpen(){
+  return state.mode==='gui' ? '<div class="ggrid">' : '<div class="grid-table">';
+}
+function totalOpen(){ return state.mode==='gui' ? '<div class="gtotal">' : '<div class="total-row">'; }
+
 function fld(label,id,value,hint,req){
+  if(state.mode==='gui') return gf(label,id,{value:value||'',hint:hint,req});
   return `<div class="field"><label for="${id}">${label}${req?' <span class="req">*</span>':''}</label>
     <input id="${id}" value="${esc(value||'')}" ${req?'class="req-field"':''} autocomplete="off">
     ${hint?`<div class="hint">${hint}</div>`:''}</div>`;
 }
 function sel(label,id,options,value,hint,req){
+  if(state.mode==='gui') return gfSel(label,id,options,{value:value,hint:hint,req});
   const opts = options.map(o=>`<option value="${esc(o[0])}" ${o[0]===value?'selected':''}>${esc(o[1])}</option>`).join('');
   return `<div class="field"><label for="${id}">${label}${req?' <span class="req">*</span>':''}</label>
     <select id="${id}" ${req?'class="req-field"':''}>${opts}</select>${hint?`<div class="hint">${hint}</div>`:''}</div>`;
@@ -83,7 +95,7 @@ function sel(label,id,options,value,hint,req){
 
 const SCENARIOS = {
 me21n:{
-  tcode:'ME21N', title:'Create Purchase Order', module:'MM · Materials Management', icon:'🛒', color:'#0a6ed1',
+  id:'me21n', tcode:'ME21N', title:'Create Purchase Order', module:'MM · Materials Management', icon:'🛒', color:'#0a6ed1',
   objective:'The warehouse needs to order <b>50 units of replacement laptops</b>. You need to create a Purchase Order (PO) for Global Tech Supplies.',
   docType:'Purchase Order', docPrefix:'4500123984',
   steps:[
@@ -93,7 +105,7 @@ me21n:{
        <button class="btn" onclick="toast('Tip: you can also type ME21N in the top bar and press Enter','info')">⌨️ Or type it in the top bar</button></div></div>`,
      autofill:{}},
     {title:'Fill Out the Header Data', desc:'Vendor & organizational data', instruction:'Enter the vendor and purchasing organization. Fields marked <span class="req">*</span> are required. Use <b>✨ Auto-fill</b> to fill instantly, or type manually.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('Vendor','me21_vendor','','e.g. <code>VND-90041</code> — Global Tech Supplies',true)}
        ${fld('Purch. Org','me21_porg','','e.g. <code>1000</code>',true)}
        ${fld('Pur. Group','me21_pgroup','','e.g. <code>001</code> — IT Procurement',true)}
@@ -103,12 +115,12 @@ me21n:{
        </div><p class="tip">💡 Vendor <code>VND-90041</code> = Global Tech Supplies. Purchasing Org <code>1000</code> buys for Company Code <code>1000</code>.</p>`,
      autofill:{me21_vendor:'VND-90041',me21_porg:'1000',me21_pgroup:'001',me21_cocode:'1000',me21_date:'11/10/2026'}},
     {title:'Fill Out the Item Overview Grid', desc:'One line: 50 laptops @ 1,200.00', instruction:'Enter the item line below. The total updates live: <b>50 × 1,200.00 = 60,000.00</b>.',
-     body:()=>`<div class="grid-table"><table><thead><tr><th>Item</th><th>Material *</th><th>Short Text *</th><th>Qty *</th><th>Unit</th><th>Price *</th><th>Plant</th><th>Stor. Loc</th></tr></thead><tbody>
+     body:()=>`${gtOpen()}<table><thead><tr><th>Item</th><th>Material *</th><th>Short Text *</th><th>Qty *</th><th>Unit</th><th>Price *</th><th>Plant</th><th>Stor. Loc</th></tr></thead><tbody>
        <tr><td class="ro">10</td><td><input id="me21_mat" class="req-field" placeholder="MAT-4402"></td><td><input id="me21_text" class="req-field" placeholder="Laptop Enterprise Edition"></td>
        <td><input id="me21_qty" class="req-field" type="number" placeholder="50" oninput="updatePOTotal()"></td><td><input id="me21_unit" value="PC"></td>
        <td><input id="me21_price" class="req-field" type="number" placeholder="1200.00" oninput="updatePOTotal()"></td><td><input id="me21_plant" value="1000"></td><td><input id="me21_storloc" value="0001"></td></tr>
        </tbody></table></div>
-       <div class="total-row"><span>Net Order Value:</span><b id="poTotal">0.00 USD</b><span class="tip">(Qty × Price)</span></div>
+       ${totalOpen()}<span>Net Order Value:</span><b id="poTotal">0.00 USD</b><span class="tip">(Qty × Price)</span></div>
        <p class="tip">Plant <code>1000</code> / Storage Location <code>0001</code> = Main Warehouse. Unit <code>PC</code> = Piece.</p>`,
      autofill:{me21_mat:'MAT-4402',me21_text:'Laptop Enterprise Edition',me21_qty:'50',me21_unit:'PC',me21_price:'1200.00',me21_plant:'1000',me21_storloc:'0001'}},
     {title:'Check for Errors', desc:'Run the consistency check', instruction:'Click <b>[ 📋 Check ]</b> on the toolbar. The system validates vendor, material, plant and pricing.',
@@ -123,7 +135,7 @@ me21n:{
   ]
 },
 va01:{
-  tcode:'VA01', title:'Create Sales Order', module:'SD · Sales & Distribution', icon:'📦', color:'#7c3aed',
+  id:'va01', tcode:'VA01', title:'Create Sales Order', module:'SD · Sales & Distribution', icon:'📦', color:'#7c3aed',
   objective:'A long-time wholesale customer calls and wants to buy <b>industrial equipment</b> from your inventory. Create a Standard Order for Apex Retail Corp.',
   docType:'Sales Order', docPrefix:'14002395',
   steps:[
@@ -131,7 +143,7 @@ va01:{
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><p class="tip">In Fiori this is the <b>Create Sales Order</b> app tile. Same transaction, modern tiles.</p>
        <button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='VA01';routeTcode('VA01')">▶ Open VA01</button></div>`, autofill:{}},
     {title:'Initial Screen — Order Type & Org', desc:'OR · 1000 / 10 / 00', instruction:'Select the order type and sales organization, then click <b>Continue (Enter)</b>.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${sel('Order Type','va_type',[['OR','OR — Standard Order'],['RE','RE — Returns'],['FD','FD — Rush Order']],'OR','',true)}
        ${fld('Sales Org','va_sorg','','e.g. <code>1000</code>',true)}
        ${fld('Distribution Channel','va_dc','','e.g. <code>10</code> — Direct',true)}
@@ -139,7 +151,7 @@ va01:{
        </div><p class="tip">💡 <code>OR</code> = Standard Order. Sales Org <code>1000</code> / Channel <code>10</code> / Division <code>00</code> is the default wholesale setup.</p>`,
      autofill:{va_type:'OR',va_sorg:'1000',va_dc:'10',va_div:'00'}},
     {title:'Order Header — Sold-to Party', desc:'Customer & their PO reference', instruction:'Enter the sold-to party and the customer\'s own PO number.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('Sold-to Party','va_soldto','','e.g. <code>CUST-5002</code> — Apex Retail Corp',true)}
        ${fld('PO Number (customer ref)','va_custpo','','e.g. <code>PO-99821</code>',true)}
        ${fld('Ship-to Party','va_shipto','CUST-5002','Defaults to sold-to',false)}
@@ -147,10 +159,10 @@ va01:{
        ${fld('Requested Delivery','va_reqdate','11/15/2026','',false)}
        </div>`, autofill:{va_soldto:'CUST-5002',va_custpo:'PO-99821',va_shipto:'CUST-5002',va_reqdate:'11/15/2026'}},
     {title:'Item Data Block', desc:'10 × Industrial Power Inverter', instruction:'Enter the item line. Price 850.00 × 10 = <b>8,500.00</b>.',
-     body:()=>`<div class="grid-table"><table><thead><tr><th>Item</th><th>Material *</th><th>Order Qty *</th><th>Unit</th><th>Description *</th><th>Price</th></tr></thead><tbody>
+     body:()=>`${gtOpen()}<table><thead><tr><th>Item</th><th>Material *</th><th>Order Qty *</th><th>Unit</th><th>Description *</th><th>Price</th></tr></thead><tbody>
        <tr><td class="ro">10</td><td><input id="va_mat" class="req-field" placeholder="ELEC-100"></td><td><input id="va_qty" class="req-field" type="number" placeholder="10" oninput="updateSOTotal()"></td>
        <td><input id="va_unit" value="PC"></td><td><input id="va_desc" class="req-field" placeholder="Industrial Power Inverter"></td><td><input id="va_price" type="number" placeholder="850.00" oninput="updateSOTotal()"></td></tr>
-       </tbody></table></div><div class="total-row"><span>Order Value:</span><b id="soTotal">0.00 USD</b></div>`,
+       </tbody></table></div>${totalOpen()}<span>Order Value:</span><b id="soTotal">0.00 USD</b></div>`,
      autofill:{va_mat:'ELEC-100',va_qty:'10',va_unit:'PC',va_desc:'Industrial Power Inverter',va_price:'850.00'}},
     {title:'Check Availability (ATP)', desc:'Background stock check', instruction:'The system automatically runs a background check against warehouse plant stocks. Click <b>Run ATP Check</b>.',
      body:()=>`<div class="display-block"><h5>🏭 Availability Check (ATP)</h5><p class="tip">ATP = <b>Available-To-Promise</b>. SAP checks unrestricted stock minus commitments for Plant 1000.</p>
@@ -162,7 +174,7 @@ va01:{
   ]
 },
 fb50:{
-  tcode:'FB50', title:'Enter G/L Account Document', module:'FI · Financial Accounting', icon:'💼', color:'#107e3e',
+  id:'fb50', tcode:'FB50', title:'Enter G/L Account Document', module:'FI · Financial Accounting', icon:'💼', color:'#107e3e',
   objective:'Record a direct financial ledger entry to pay an external office utility bill — <b>double-entry bookkeeping</b>: Debit = Credit.',
   docType:'G/L Document', docPrefix:'100004921',
   steps:[
@@ -170,7 +182,7 @@ fb50:{
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><p class="tip">In Fiori this is <b>Post Journal Entry</b>. The accounting logic is identical.</p>
        <button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='FB50';routeTcode('FB50')">▶ Open FB50</button></div>`, autofill:{}},
     {title:'Document Header', desc:'Company Code 1000 · USD', instruction:'Enter the document date and company code.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('Document Date','fb_docdate',today(),'',true)}
        ${fld('Company Code','fb_cocode','','e.g. <code>1000</code>',true)}
        ${sel('Currency','fb_curr',[['USD','USD — US Dollar'],['EUR','EUR — Euro'],['AED','AED — UAE Dirham']],'USD','',false)}
@@ -180,7 +192,7 @@ fb50:{
        </div>`, autofill:{fb_docdate:'11/10/2026',fb_cocode:'1000',fb_postdate:'11/10/2026',fb_ref:'Utility Bill — Oct 2026'}},
     {title:'Line Item Entry — Double Entry', desc:'Debit Electricity Expense / Credit Petty Cash', instruction:'Enter both lines. The <b>traffic-light balance</b> must show <b>0.00</b> before posting. Try changing an amount to see it turn red.',
      body:()=>`<div id="fbBalance" class="balance-box ok"><span class="traffic green" id="fbTraffic"></span><span>Balance:</span><b id="fbBalVal">0.00 USD</b><span id="fbBalMsg">🟢 Debit equals Credit — ready to post.</span></div>
-       <div class="grid-table"><table><thead><tr><th>Line</th><th>G/L Account *</th><th>Short Text *</th><th>D/C</th><th>Amount (Doc. Curr.) *</th><th>Cost Center</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Line</th><th>G/L Account *</th><th>Short Text *</th><th>D/C</th><th>Amount (Doc. Curr.) *</th><th>Cost Center</th></tr></thead><tbody>
        <tr><td class="ro">1</td><td><input id="fb1_acct" class="req-field" placeholder="400000" oninput="updateFBBalance()"></td><td><input id="fb1_text" class="req-field" placeholder="Electricity Expense"></td>
        <td><select id="fb1_dc" onchange="updateFBBalance()"><option value="D">Debit</option><option value="C">Credit</option></select></td>
        <td><input id="fb1_amt" class="req-field" type="number" placeholder="450.00" oninput="updateFBBalance()"></td><td><input id="fb1_cc" placeholder="CC-ADMIN"></td></tr>
@@ -200,14 +212,14 @@ fb50:{
   ]
 },
 me23n:{
-  tcode:'ME23N', title:'Display Purchase Order', module:'MM · Materials Management', icon:'📋', color:'#7c3aed',
+  id:'me23n', tcode:'ME23N', title:'Display Purchase Order', module:'MM · Materials Management', icon:'📋', color:'#7c3aed',
   objective:'Display Purchase Order <b>4500123984</b> (created in Simulation 1) — header, items and order status. Read-only: nothing can be changed here.',
   docType:'Purchase Order', docPrefix:'4500123984',
   steps:[
     {title:'Enter the T-Code', desc:'ME23N — Display Purchase Order', instruction:'Type <b>ME23N</b> in the command field and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='ME23N';routeTcode('ME23N')">▶ Open ME23N</button></div>`, autofill:{}},
     {title:'Enter PO Number & Execute', desc:'4500123984', instruction:'Enter the PO number and click <b>Execute (Enter)</b>.',
-     body:()=>`<div class="form-grid">${fld('Purchase Order Number','dpo_num','','e.g. <code>4500123984</code>',true)}</div>
+     body:()=>`${fgOpen()}${fld('Purchase Order Number','dpo_num','','e.g. <code>4500123984</code>',true)}</div>
        <div id="dpoResult" style="display:none">
        <div class="display-block"><h5>Header Data</h5>
          <div class="kv"><span>Vendor</span><b>VND-90041 — Global Tech Supplies</b></div>
@@ -215,9 +227,9 @@ me23n:{
          <div class="kv"><span>Company Code</span><b>1000</b></div>
          <div class="kv"><span>Order Date</span><b>11/10/2026</b></div>
          <div class="kv"><span>Status</span><b>🟢 Ordered — not yet delivered</b></div></div>
-       <div class="grid-table"><table><thead><tr><th>Item</th><th>Material</th><th>Short Text</th><th>Qty</th><th>Unit</th><th>Price</th><th>Plant</th><th>Stor. Loc</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Item</th><th>Material</th><th>Short Text</th><th>Qty</th><th>Unit</th><th>Price</th><th>Plant</th><th>Stor. Loc</th></tr></thead><tbody>
          <tr><td class="ro">10</td><td>MAT-4402</td><td>Laptop Enterprise Edition</td><td>50</td><td>PC</td><td>1,200.00</td><td>1000</td><td>0001</td></tr></tbody></table></div>
-       <div class="total-row"><span>Net Order Value:</span><b>60,000.00 USD</b></div></div>`,
+       ${totalOpen()}<span>Net Order Value:</span><b>60,000.00 USD</b></div></div>`,
      autofill:{dpo_num:'4500123984'}, primary:{label:'▶ Execute', cls:'btn-primary', handler:'execDisplayPO'}},
     {title:'Review & Next Actions', desc:'Print · History · Goods Receipt', instruction:'Review the PO. From here you can print it, view its history, or jump to <b>Goods Movement (MIGO)</b> to receive the laptops.',
      body:()=>`<div class="display-block"><h5>🕘 PO History — Document Flow</h5>
@@ -237,26 +249,26 @@ me23n:{
   ]
 },
 ml81n:{
-  tcode:'ML81N', title:'Service Entry Sheet', module:'MM · Materials Management', icon:'🧾', color:'#0891b2',
+  id:'ml81n', tcode:'ML81N', title:'Service Entry Sheet', module:'MM · Materials Management', icon:'🧾', color:'#0891b2',
   objective:'Create a <b>Service Entry Sheet</b> for PO 4500123984 — record the laptop installation service, accept it, and save.',
   docType:'Service Entry Sheet', docPrefix:'1000001234',
   steps:[
     {title:'Enter the T-Code', desc:'ML81N — Create Service Entry Sheet', instruction:'Type <b>ML81N</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='ML81N';routeTcode('ML81N')">▶ Open ML81N</button></div>`, autofill:{}},
     {title:'Header — PO & Entry Sheet Type', desc:'PO 4500123984', instruction:'Enter the PO number the service belongs to.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('Purchase Order Number','ses_po','','e.g. <code>4500123984</code>',true)}
        ${sel('Entry Sheet Type','ses_type',[['','— Select —'],['ES','ES — Service Entry Sheet']],'ES','',true)}
        ${fld('Service Org','ses_org','1000','',false)}
        ${fld('Entry Date','ses_date',today(),'',false)}</div>`,
      autofill:{ses_po:'4500123984',ses_type:'ES',ses_org:'1000',ses_date:'11/10/2026'}},
     {title:'Service Lines & Accept', desc:'Installation service · 500.00', instruction:'Enter the service line and tick <b>Accept</b> to accept the service as rendered.',
-     body:()=>`<div class="grid-table"><table><thead><tr><th>Item</th><th>Service *</th><th>Description *</th><th>Qty *</th><th>Unit</th><th>Price *</th><th>Accept</th></tr></thead><tbody>
+     body:()=>`${gtOpen()}<table><thead><tr><th>Item</th><th>Service *</th><th>Description *</th><th>Qty *</th><th>Unit</th><th>Price *</th><th>Accept</th></tr></thead><tbody>
        <tr><td class="ro">10</td><td><input id="ses_svc" class="req-field" placeholder="SVC-INST"></td><td><input id="ses_desc" class="req-field" placeholder="Installation & Setup"></td>
        <td><input id="ses_qty" class="req-field" type="number" placeholder="1" oninput="updateSESTotal()"></td><td><input id="ses_unit" value="AU"></td>
        <td><input id="ses_price" class="req-field" type="number" placeholder="500.00" oninput="updateSESTotal()"></td>
        <td><input type="checkbox" id="ses_accept" checked style="width:18px;height:18px"></td></tr></tbody></table></div>
-       <div class="total-row"><span>Service Value:</span><b id="sesTotal">0.00 USD</b></div>`,
+       ${totalOpen()}<span>Service Value:</span><b id="sesTotal">0.00 USD</b></div>`,
      autofill:{ses_svc:'SVC-INST',ses_desc:'Installation & Setup',ses_qty:'1',ses_unit:'AU',ses_price:'500.00'}},
     {title:'Save the Entry Sheet', desc:'Create SES 1000001234', instruction:'Click <b>[ 💾 Save ]</b>. The accepted service can now be invoiced via MIRO.',
      body:()=>`<div class="display-block"><h5>💾 Ready to Save</h5><p class="tip">Saving creates Service Entry Sheet <b>1000001234</b> with status <b>Accepted</b>.</p></div>`,
@@ -264,14 +276,14 @@ ml81n:{
   ]
 },
 output:{
-  tcode:'MB90', title:'* Output Processing for Matl Documents', module:'MM · Materials Management', icon:'🖨️', color:'#475569',
+  id:'output', tcode:'MB90', title:'* Output Processing for Matl Documents', module:'MM · Materials Management', icon:'🖨️', color:'#475569',
   objective:'Produce <b>output (print)</b> for a material document — the goods receipt created by MIGO (4900012345).',
   docType:'Material Document Output', docPrefix:'SPOOL-100234',
   steps:[
     {title:'Enter the T-Code', desc:'MB90 — Print List of Material Documents', instruction:'Type <b>MB90</b> and press Enter. (Output processing = printing / sending the material document.)',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='MB90';routeTcode('MB90')">▶ Open MB90</button></div>`, autofill:{}},
     {title:'Selection Screen', desc:'Material document & output device', instruction:'Enter the material document and output device, then Execute.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('Material Document','out_doc','','e.g. <code>4900012345</code> (from MIGO)',true)}
        ${fld('Plant','out_plant','1000','',true)}
        ${sel('Output Device','out_dev',[['LOCL','LOCL — Local Printer'],['PDF','PDF — Save as PDF'],['EMAIL','EMAIL — Send by Mail']],'LOCL','',false)}
@@ -292,20 +304,20 @@ output:{
   ]
 },
 migo:{
-  tcode:'MIGO', title:'Goods Movement', module:'MM · Materials Management', icon:'📦', color:'#d97706',
+  id:'migo', tcode:'MIGO', title:'Goods Movement', module:'MM · Materials Management', icon:'📦', color:'#d97706',
   objective:'Post a <b>Goods Receipt</b> for PO 4500123984 — move <b>50 laptops</b> into stock (Plant 1000 / Stor. Loc 0001).',
   docType:'Material Document', docPrefix:'4900012345',
   steps:[
     {title:'Enter the T-Code', desc:'MIGO — Goods Movement', instruction:'Type <b>MIGO</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='MIGO';routeTcode('MIGO')">▶ Open MIGO</button></div>`, autofill:{}},
     {title:'Select Goods Receipt & PO', desc:'R10 · PO 4500123984', instruction:'Choose <b>Goods Receipt</b> and enter the PO number.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${sel('Movement Type','migo_type',[['R10','R10 — Goods Receipt'],['R11','R11 — Goods Issue'],['R02','R02 — Transfer Posting']],'R10','',true)}
        ${fld('Purchase Order','migo_po','','e.g. <code>4500123984</code>',true)}
        ${fld('Posting Date','migo_date',today(),'',false)}</div>`,
      autofill:{migo_type:'R10',migo_po:'4500123984',migo_date:'11/10/2026'}},
     {title:'Item — Quantity & Storage', desc:'50 PC · Plant 1000 / 0001', instruction:'Enter the quantity to receive and the storage location.',
-     body:()=>`<div class="grid-table"><table><thead><tr><th>Item</th><th>Material</th><th>Qty *</th><th>Unit</th><th>Plant</th><th>Stor. Loc *</th><th>Batch</th></tr></thead><tbody>
+     body:()=>`${gtOpen()}<table><thead><tr><th>Item</th><th>Material</th><th>Qty *</th><th>Unit</th><th>Plant</th><th>Stor. Loc *</th><th>Batch</th></tr></thead><tbody>
        <tr><td class="ro">1</td><td>MAT-4402</td><td><input id="migo_qty" class="req-field" type="number" placeholder="50" oninput="updateMIGOStock()"></td><td>PC</td>
        <td>1000</td><td><input id="migo_stor" class="req-field" value="0001"></td><td><input id="migo_batch" placeholder="B-2026-11"></td></tr></tbody></table></div>
        <div class="display-block"><h5>📊 Stock Preview — MAT-4402 / Plant 1000 / 0001</h5>
@@ -316,28 +328,28 @@ migo:{
      autofill:{migo_qty:'50',migo_stor:'0001',migo_batch:'B-2026-11'}},
     {title:'Check & Post', desc:'Post the goods receipt', instruction:'Click <b>[ 💾 Post ]</b>. SAP posts the material document and updates stock.',
      body:()=>`<div class="display-block"><h5>💾 Ready to Post</h5><p class="tip">Posting creates Material Document <b>4900012345</b> and increases stock of MAT-4402 by 50 PC. You can then print it via <b>* Output Processing for Matl Documents (MB90)</b>.</p></div>
-       <div class="grid-table"><table><thead><tr><th>Mat. Doc</th><th>Item</th><th>Movement</th><th>Material</th><th>Qty</th><th>PO Ref</th><th>Posting Date</th><th>Status</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Mat. Doc</th><th>Item</th><th>Movement</th><th>Material</th><th>Qty</th><th>PO Ref</th><th>Posting Date</th><th>Status</th></tr></thead><tbody>
        <tr><td class="ro">4900012344</td><td>1</td><td>101 GR</td><td>MAT-4410</td><td>20 PC</td><td>4500123971</td><td>11/06/2026</td><td>🟢 Posted</td></tr>
        <tr><td class="ro">4900012345</td><td>1</td><td>101 GR (new)</td><td>MAT-4402</td><td>50 PC</td><td>4500123984</td><td>11/10/2026</td><td>⏳ To be posted</td></tr></tbody></table></div>`,
      autofill:{}, primary:{label:'💾 Post', cls:'btn-green', handler:'postMIGO'}},
   ]
 },
 me51n:{
-  tcode:'ME51N', title:'Create Purchase Requisition', module:'MM · Materials Management', icon:'📝', color:'#16a34a',
+  id:'me51n', tcode:'ME51N', title:'Create Purchase Requisition', module:'MM · Materials Management', icon:'📝', color:'#16a34a',
   objective:'Create a <b>Purchase Requisition (PR)</b> for 50 laptops — the internal request that triggers procurement. Then release it.',
   docType:'Purchase Requisition', docPrefix:'10001234',
   steps:[
     {title:'Enter the T-Code', desc:'ME51N — Create Purchase Requisition', instruction:'Type <b>ME51N</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='ME51N';routeTcode('ME51N')">▶ Open ME51N</button></div>`, autofill:{}},
     {title:'Header — PR Type & Org', desc:'NB · 1000 / 001 / Plant 1000', instruction:'Enter the PR type and purchasing organization.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${sel('PR Type','pr_type',[['NB','NB — Standard'],['D','D — Services']],'NB','',true)}
        ${fld('Purch. Org','pr_porg','','e.g. <code>1000</code>',true)}
        ${fld('Pur. Group','pr_pgroup','','e.g. <code>001</code>',true)}
        ${fld('Plant','pr_plant','','e.g. <code>1000</code>',true)}</div>`,
      autofill:{pr_type:'NB',pr_porg:'1000',pr_pgroup:'001',pr_plant:'1000'}},
     {title:'Item — What Is Needed', desc:'50 laptops · needed by 11/20/2026', instruction:'Enter the material, quantity and delivery date.',
-     body:()=>`<div class="grid-table"><table><thead><tr><th>Item</th><th>Material *</th><th>Short Text *</th><th>Qty *</th><th>Unit</th><th>Delivery Date *</th></tr></thead><tbody>
+     body:()=>`${gtOpen()}<table><thead><tr><th>Item</th><th>Material *</th><th>Short Text *</th><th>Qty *</th><th>Unit</th><th>Delivery Date *</th></tr></thead><tbody>
        <tr><td class="ro">10</td><td><input id="pr_mat" class="req-field" placeholder="MAT-4402"></td><td><input id="pr_text" class="req-field" placeholder="Laptop Enterprise Edition"></td>
        <td><input id="pr_qty" class="req-field" type="number" placeholder="50"></td><td>PC</td><td><input id="pr_date" class="req-field" placeholder="11/20/2026"></td></tr></tbody></table></div>
        <p class="tip">Requester: Warehouse (Plant 1000). Reason: replacement laptops for the IT refresh.</p>`,
@@ -348,14 +360,14 @@ me51n:{
   ]
 },
 me53n:{
-  tcode:'ME53N', title:'* Display Purchase Requisition', module:'MM · Materials Management', icon:'👁️', color:'#db2777',
+  id:'me53n', tcode:'ME53N', title:'* Display Purchase Requisition', module:'MM · Materials Management', icon:'👁️', color:'#db2777',
   objective:'Display Purchase Requisition <b>10001234</b> — who requested what, when it is needed, and its release status.',
   docType:'Purchase Requisition', docPrefix:'10001234',
   steps:[
     {title:'Enter the T-Code', desc:'ME53N — Display Purchase Requisition', instruction:'Type <b>ME53N</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='ME53N';routeTcode('ME53N')">▶ Open ME53N</button></div>`, autofill:{}},
     {title:'Enter PR Number & Execute', desc:'10001234', instruction:'Enter the PR number and click <b>Execute</b>.',
-     body:()=>`<div class="form-grid">${fld('Purchase Requisition','dpr_num','','e.g. <code>10001234</code>',true)}</div>
+     body:()=>`${fgOpen()}${fld('Purchase Requisition','dpr_num','','e.g. <code>10001234</code>',true)}</div>
        <div id="dprResult" style="display:none">
        <div class="display-block"><h5>Header</h5>
          <div class="kv"><span>PR Type</span><b>NB — Standard</b></div>
@@ -363,7 +375,7 @@ me53n:{
          <div class="kv"><span>Plant</span><b>1000</b></div>
          <div class="kv"><span>Status</span><b>🟢 Released</b></div>
          <div class="kv"><span>Requester</span><b>Warehouse — Plant 1000</b></div></div>
-       <div class="grid-table"><table><thead><tr><th>Item</th><th>Material</th><th>Short Text</th><th>Qty</th><th>Unit</th><th>Delivery Date</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Item</th><th>Material</th><th>Short Text</th><th>Qty</th><th>Unit</th><th>Delivery Date</th></tr></thead><tbody>
          <tr><td class="ro">10</td><td>MAT-4402</td><td>Laptop Enterprise Edition</td><td>50</td><td>PC</td><td>11/20/2026</td></tr></tbody></table></div></div>`,
      autofill:{dpr_num:'10001234'}, primary:{label:'▶ Execute', cls:'btn-primary', handler:'execDisplayPR'}},
     {title:'Review & Convert to PO', desc:'Next: ME21N', instruction:'A released PR can be converted into a Purchase Order. Jump to <b>Create Purchase Order (ME21N)</b> to continue the Procure-to-Pay flow.',
@@ -373,14 +385,14 @@ me53n:{
   ]
 },
 mm03:{
-  tcode:'MM03', title:'Display Material Master', module:'MM · Materials Management', icon:'🔍', color:'#0a6ed1',
+  id:'mm03', tcode:'MM03', title:'Display Material Master', module:'MM · Materials Management', icon:'🔍', color:'#0a6ed1',
   objective:'Display Material Master for <b>MAT-4402</b> — the catalog record for the laptops used in all MM simulations.',
   docType:'Material Master', docPrefix:'MAT-4402',
   steps:[
     {title:'Enter the T-Code', desc:'MM03 — Display Material Master', instruction:'Type <b>MM03</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='MM03';routeTcode('MM03')">▶ Open MM03</button></div>`, autofill:{}},
     {title:'Enter Material & Execute', desc:'MAT-4402', instruction:'Enter the material number and click <b>Execute</b>.',
-     body:()=>`<div class="form-grid">${fld('Material','mm_mat','','e.g. <code>MAT-4402</code>',true)}</div>
+     body:()=>`${fgOpen()}${fld('Material','mm_mat','','e.g. <code>MAT-4402</code>',true)}</div>
        <div id="mmResult" style="display:none">
        <div class="display-block"><h5>Basic Data 1</h5>
          <div class="kv"><span>Material</span><b>MAT-4402</b></div>
@@ -399,14 +411,14 @@ mm03:{
   ]
 },
 va03:{
-  tcode:'VA03', title:'Display Sales Order', module:'SD · Sales & Distribution', icon:'👁️', color:'#7c3aed',
+  id:'va03', tcode:'VA03', title:'Display Sales Order', module:'SD · Sales & Distribution', icon:'👁️', color:'#7c3aed',
   objective:'Display Sales Order <b>14002395</b> created in Simulation 2.',
   docType:'Sales Order', docPrefix:'14002395',
   steps:[
     {title:'Enter the T-Code', desc:'VA03 — Display Sales Order', instruction:'Type <b>VA03</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='VA03';routeTcode('VA03')">▶ Open VA03</button></div>`, autofill:{}},
     {title:'Enter Order Number & Execute', desc:'14002395', instruction:'Enter the sales order number and click <b>Execute</b>.',
-     body:()=>`<div class="form-grid">${fld('Sales Order','va03_num','','e.g. <code>14002395</code>',true)}</div>
+     body:()=>`${fgOpen()}${fld('Sales Order','va03_num','','e.g. <code>14002395</code>',true)}</div>
        <div id="va03Result" style="display:none">
        <div class="display-block"><h5>Header</h5>
          <div class="kv"><span>Order Type</span><b>OR — Standard Order</b></div>
@@ -414,9 +426,9 @@ va03:{
          <div class="kv"><span>Customer PO</span><b>PO-99821</b></div>
          <div class="kv"><span>Delivery Date</span><b>11/15/2026</b></div>
          <div class="kv"><span>Status</span><b>🟢 Open — ATP confirmed</b></div></div>
-       <div class="grid-table"><table><thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Qty</th><th>Unit</th><th>Price</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Item</th><th>Material</th><th>Description</th><th>Qty</th><th>Unit</th><th>Price</th></tr></thead><tbody>
          <tr><td class="ro">10</td><td>ELEC-100</td><td>Industrial Power Inverter</td><td>10</td><td>PC</td><td>850.00</td></tr></tbody></table></div>
-       <div class="total-row"><span>Order Value:</span><b>8,500.00 USD</b></div></div>`,
+       ${totalOpen()}<span>Order Value:</span><b>8,500.00 USD</b></div></div>`,
      autofill:{va03_num:'14002395'}, primary:{label:'▶ Execute', cls:'btn-primary', handler:'execVA03'}},
     {title:'Review', desc:'Read-only display', instruction:'VA03 is display-only. Use <b>VA02</b> to change or <b>VA01</b> to create a sales order.',
      body:()=>`<div class="display-block"><h5>✅ Done</h5><p class="tip">Order 14002395 is confirmed for delivery on 11/15/2026 — the ATP result from Simulation 2.</p></div>`,
@@ -424,23 +436,23 @@ va03:{
   ]
 },
 fbl3n:{
-  tcode:'FBL3N', title:'G/L Account Line Item Display', module:'FI · Financial Accounting', icon:'📊', color:'#107e3e',
+  id:'fbl3n', tcode:'FBL3N', title:'G/L Account Line Item Display', module:'FI · Financial Accounting', icon:'📊', color:'#107e3e',
   objective:'Display G/L line items for account <b>400000 (Electricity Expense)</b> — including the FB50 document 100004921 from Simulation 3.',
   docType:'G/L Line Items', docPrefix:'400000',
   steps:[
     {title:'Enter the T-Code', desc:'FBL3N — G/L Line Item Display', instruction:'Type <b>FBL3N</b> and press Enter.',
      body:()=>`<div class="display-block"><h5>📟 Command Field</h5><button class="btn btn-primary" onclick="document.getElementById('cmdInput').value='FBL3N';routeTcode('FBL3N')">▶ Open FBL3N</button></div>`, autofill:{}},
     {title:'Selection & Execute', desc:'Account 400000 · CoCode 1000', instruction:'Enter the G/L account and company code, then click <b>Execute</b>.',
-     body:()=>`<div class="form-grid">
+     body:()=>`${fgOpen()}
        ${fld('G/L Account','fbl_acct','','e.g. <code>400000</code>',true)}
        ${fld('Company Code','fbl_co','','e.g. <code>1000</code>',true)}</div>
        <div id="fblResult" style="display:none">
-       <div class="grid-table"><table><thead><tr><th>Doc. No.</th><th>Posting Date</th><th>Text</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>
+       ${gtOpen()}<table><thead><tr><th>Doc. No.</th><th>Posting Date</th><th>Text</th><th>Debit</th><th>Credit</th><th>Balance</th></tr></thead><tbody>
          <tr><td class="ro">100004921</td><td>11/10/2026</td><td>Utility Bill — Oct 2026</td><td>450.00</td><td>—</td><td>450.00 D</td></tr>
          <tr><td class="ro">100004850</td><td>10/10/2026</td><td>Utility Bill — Sep 2026</td><td>430.00</td><td>—</td><td>430.00 D</td></tr>
          <tr><td class="ro">100004701</td><td>09/10/2026</td><td>Utility Bill — Aug 2026</td><td>410.00</td><td>—</td><td>410.00 D</td></tr>
        </tbody></table></div>
-       <div class="total-row"><span>Total Balance (400000):</span><b>1,290.00 USD Debit</b></div></div>`,
+       ${totalOpen()}<span>Total Balance (400000):</span><b>1,290.00 USD Debit</b></div></div>`,
      autofill:{fbl_acct:'400000',fbl_co:'1000'}, primary:{label:'▶ Execute', cls:'btn-primary', handler:'execFBL3N'}},
     {title:'Review', desc:'Check account balances', instruction:'FBL3N shows every posting to the account. Document <b>100004921</b> from FB50 is the newest line.',
      body:()=>`<div class="display-block"><h5>✅ Done</h5><p class="tip">Tip: <b>FBL3N</b> for G/L accounts · <b>FBL1N</b> for vendors · <b>FBL5N</b> for customers.</p></div>`,
@@ -474,19 +486,46 @@ function toast(msg,type){
 function setStatus(msg,type){
   state.status={msg,type:type||'ok'}; renderStatusBar();
 }
+/* status bar text only — cheap path used by the clock */
+function refreshStatusClock(){
+  if(state.mode!=='gui') return;
+  const el=$('statusBar'); if(!el) return;
+  const cells=el.querySelectorAll('.gsb-c');
+  const last=cells[cells.length-2];
+  if(!last) return;
+  const now=new Date();
+  last.textContent=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+}
 function renderStatusBar(){
   const el=$('statusBar'); if(!el) return;
+  if(state.mode==='gui'){
+    const ico = state.status.type==='err' ? '🔴' : state.status.type==='info' ? '🔵' : '🟢';
+    const now=new Date();
+    const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')+':'+String(now.getSeconds()).padStart(2,'0');
+    el.className='gui-statusbar';
+    el.innerHTML=`<span class="gsb-sys">${ico}</span><span class="gsb-msg" id="statusMsg">${esc(state.status.msg)}</span>
+      <span class="gsb-spacer"></span>
+      <span class="gsb-c">PRD (1)</span><span class="gsb-c">100</span><span class="gsb-c">EN</span>
+      <span class="gsb-c">${hm}</span><span class="gsb-c gsb-user">ENTERPRISE_USER</span>`;
+    return;
+  }
   const dot = state.status.type==='err'?'err':state.status.type==='info'?'info':'';
+  el.className='statusbar';
   el.innerHTML=`<span class="sdot ${dot}"></span><span id="statusMsg">${esc(state.status.msg)}</span><span class="spacer"></span>
-    <span class="mono">${state.mode==='gui'?'SAP GUI · ECC · Client 100':'Fiori · S/4HANA · Client 100'} · ENTERPRISE_USER</span>`;
+    <span class="mono">Fiori · S/4HANA · Client 100 · ENTERPRISE_USER</span>`;
 }
 function showSys(type,html){
   const el=$('sysResponse'); if(!el) return;
+  if(el.classList.contains('gsys')){
+    el.className='gsys gsys-'+type;
+    el.innerHTML=`<span class="gmsg-ico">${type==='err'?'🔴':type==='info'?'🔵':'🟢'}</span> <span>${html}</span>`;
+    return;
+  }
   el.className='sys-response show '+type; el.innerHTML=html;
 }
 function sysSpinner(text){ showSys('info',`<span class="spin"></span><span>${text}</span>`); }
-function sysOk(text){ showSys('ok',`<span>🟢</span><span>${text}</span>`); }
-function sysErr(text){ showSys('err',`<span>🔴</span><span>${text}</span>`); }
+function sysOk(text){ showSys('ok', text); }
+function sysErr(text){ showSys('err', text); }
 function validateRequired(){
   let ok=true;
   document.querySelectorAll('.req-field').forEach(el=>{
@@ -570,7 +609,7 @@ function setMode(m){
   state.mode=m; localStorage.setItem('sapMode',m);
   document.body.dataset.mode=m;
   render();
-  const label = m==='fiori' ? '✨ Fiori (S/4HANA)' : '🖥️ SAP GUI (ECC)';
+  const label = m==='fiori' ? '✨ Fiori (S/4HANA)' : '🖥️ SAP GUI for Windows (ECC)';
   toast(`Switched to ${label} — 1 click, your step &amp; entries are kept ✓`,'info');
   setStatus(`Mode: ${label}. Progress preserved.`,'info');
 }
@@ -798,7 +837,12 @@ function runAction(name){
 function render(){
   document.body.dataset.mode=state.mode;
   const app=$('app');
-  app.innerHTML = renderHeader() + renderFavBar() + `<div class="layout">${renderSidebar()}<main class="main" id="main">${state.view==='sim'?renderSim():renderHome()}</main></div>` + renderStatusBarHTML() + `<div class="footer-note">SAP Simulation for learning — SAP GUI (ECC) &amp; Fiori (S/4HANA) in one app. Data is simulated locally in your browser; no real SAP system is connected.</div>`;
+  if(state.mode==='gui'){
+    // Authentic SAP GUI for Windows desktop shell — on the home screen and on every step
+    app.innerHTML = state.view==='sim' ? renderGuiSim() : renderGuiHome();
+  } else {
+    app.innerHTML = renderHeader() + renderFavBar() + `<div class="layout">${renderSidebar()}<main class="main" id="main">${state.view==='sim'?renderSim():renderHome()}</main></div>` + renderStatusBarHTML() + `<div class="footer-note">SAP Simulation for learning — SAP GUI (ECC) &amp; Fiori (S/4HANA) in one app. Data is simulated locally in your browser; no real SAP system is connected.</div>`;
+  }
   renderStatusBar();
   restoreForm();
   updateClock();
@@ -889,6 +933,400 @@ function renderSidebar(){
   </aside>`;
 }
 function renderStatusBarHTML(){ return `<div class="statusbar" id="statusBar"></div>`; }
+
+/* ================= SAP GUI FOR WINDOWS DESKTOP ================= */
+/* Everything from the Windows window chrome down to the SAP status bar. */
+
+const GUI_MENU = [
+  ['SAP Easy Access', goHome],
+  ['SAP Business Workplace', ()=>toast('🖥️ SAP Business Workplace — no messages','info')],
+  ['Functional area', ()=>toast('🖥️ Functional area: Logistics / Accounting','info')],
+  ['Quick links', ()=>toast('🖥️ Quick links: ME21N · VA01 · FB50','info')],
+  ['Refresh', ()=>render()],
+  ['Exit', goHome],
+];
+
+function shellMenuItems(items){
+  return items.map(([label, fn],i)=>{
+    const slot='__menu'+i;
+    (window.__menuFns=window.__menuFns||{})[slot]=fn;
+    return `<button class="gmenu-item" onclick="runMenu('${slot}')">${esc(label)}</button>`;
+  }).join('');
+}
+function runMenu(slot){
+  const fn=(window.__menuFns||{})[slot];
+  if(typeof fn==='function') fn();
+}
+
+/* Classic SAP GUI icon toolbar button: icon + tiny label underneath */
+function guiBtn(icon, label, onclick, opts){
+  const o=opts||{};
+  return `<button class="gtb-btn ${o.cls||''}" onclick="${onclick}" ${o.disabled?'disabled':''} title="${esc(o.title||label)}">
+    <span class="gtb-ico">${icon}</span><span class="gtb-lbl">${esc(label)}</span></button>`;
+}
+
+function renderGuiShell(inner, opts){
+  const o=opts||{};
+  const pic=o.picture||{icon:'🖥️', line1:'SAP Easy Access', line2:'SAP Easy Access Menu'};
+  const title=o.windowTitle||'SAP Easy Access';
+  const transaction=o.transaction||null;
+  const menus = o.menus || GUI_MENU;
+  return `
+  <div class="sapdesktop" data-mode="gui">
+    <div class="sapwin">
+      <div class="sapwin-title">
+        <span class="swt-ico">🪟</span>
+        <span class="swt-text">${esc(title)}</span>
+        <span class="swt-ctrl"><span>—</span><span>▢</span><span class="x">✕</span></span>
+      </div>
+
+      <div class="sapmenubar">${shellMenuItems(menus)}<span class="spacer"></span><span class="gmenu-conn">PRD (1) 100 · ENTERPRISE_USER</span></div>
+
+      <div class="saptoolbar">
+        <div class="gtb-group">
+          ${guiBtn('⬅','Back','guiBack()',{title:'Back (F3)'})}
+          ${guiBtn('➡','Exit','guiExit()',{title:'Exit (Shift+F3)'})}
+          ${guiBtn('🚪','Log off','guiLogoff()',{title:'Log off'})}
+          ${guiBtn('🚩','Print','guiPrint()',{title:'Print (Ctrl+P)'})}
+          ${guiBtn('🔎','Find','guiFind()',{title:'Find'})}
+          ${guiBtn('⌚','Clock','toast(\'🕐 Local time — system time is shown in the status bar\',\'info\')',{title:'Time'})}
+        </div>
+        <div class="gtb-sep"></div>
+        ${transaction
+          ? `<div class="gtb-group">${guiBtn('📄','Enter','nextStep()',{cls:'primary',title:'Enter / Next step'})}
+             ${guiBtn('💡','Tip','toggleGuiTip()',{title:'Show / hide the guided tip'})}</div>`
+          : `<div class="gtb-group">${guiBtn('⊕','Create','guiHint()',{title:'Create'})}
+             ${guiBtn('📂','Open','guiHint()')}
+             ${guiBtn('💾','Save','guiHint()')}</div>`}
+        <span class="spacer"></span>
+        <div class="gtb-group">
+          ${guiBtn('🖥️ SAP GUI','','',{cls:'mode',title:'You are in SAP GUI (ECC)'})}
+          ${guiBtn('✨','Fiori','setMode(\'fiori\')',{cls:'mode-flip',title:'Switch to Fiori (S/4HANA) — 1 click'})}
+        </div>
+      </div>
+
+      <div class="sapwin-screen">
+        <div class="gcmdbar">
+          <span class="gcmd-ico">▸</span>
+          <div class="gcmd-box"><input id="cmdInput" placeholder="${transaction?esc(transaction.parent)+' · '+esc(transaction.tcode):'Transaction code'}" value="${transaction?esc(transaction.tcode):''}" onkeydown="if(event.key==='Enter')cmdGo()" autocomplete="off" spellcheck="false"></div>
+          <button class="gcmd-go" onclick="cmdGo()" title="Enter">⏎</button>
+          <span class="gcmd-spacer"></span>
+          <span class="gcmd-sys">PRD (1) 100 · ${o.production===false?'Development':'Production'}</span>
+        </div>
+        <div class="gscreen-body" id="gscreenBody">
+          ${inner}
+        </div>
+      </div>
+
+      <div class="gui-statusbar" id="statusBar"></div>
+    </div>
+    <div class="gui-hintline">🖥️ SAP GUI for Windows (ECC) · Client 100 · PRD — a faithful simulation, not a real SAP system. Switch to <b>✨ Fiori</b> any time with the toolbar button (top right).</div>
+  </div>`;
+}
+
+/* Standard SAP screen title row */
+function guiTitle(t){
+  return `<table class="gtitle"><tbody><tr>
+    <td class="gtitle-l">${esc(t.line1||'')}</td>
+    <td class="gtitle-r">${esc(t.line2||'')}</td></tr></tbody></table>`;
+}
+/* Transaction title: "Create Purchase Order" */
+function guiTcodeTitle(tcode, name){
+  return `<table class="gtitle"><tbody><tr>
+    <td class="gtitle-l">${esc(name)}</td>
+    <td class="gtitle-r"><b>${esc(tcode)}</b></td></tr></tbody></table>`;
+}
+
+/* Screen wrapper: title + optional tabstrip + body */
+function guiScreen(inner, t){
+  return `<div class="gscreen">
+    ${t ? guiTitle(t) : ''}
+    ${inner}
+  </div>`;
+}
+
+/* Tabstrip (like "Item Overview | Header | ...") */
+function guiTabs(tabs, activeIdx){
+  return `<div class="gtabs">${tabs.map((t,i)=>
+    `<span class="gtab ${i===activeIdx?'active':''}" onclick="${t.onclick||'void 0'}">${esc(t.label||t)}</span>`).join('')}</div>`;
+}
+
+/* Field legend box — the classic SAP "group box" with a titled frame */
+function guiGroup(title, inner, cols){
+  return `<fieldset class="ggroup"><legend>${esc(title)}</legend>
+    <div class="gfields ${cols?('cols'+cols):''}">${inner}</div></fieldset>`;
+}
+
+/* SAP input: label left, input right (label box 210px) */
+function gf(label, id, opts){
+  const o=opts||{};
+  const val=o.value!=null?o.value:'';
+  const req=o.req;
+  return `<div class="gf ${req?'gf-req':''}">
+    <label class="gf-l" for="${id}">${esc(label)}${req?'<span class="gf-asterix">*</span>':''}</label>
+    <span class="gf-c">
+      <input id="${id}" class="gf-i ${req?'req-field':''}" value="${esc(val)}" ${o.type?`type="${o.type}"`:''} ${o.placeholder?`placeholder="${esc(o.placeholder)}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} autocomplete="off">
+      ${o.unit?`<span class="gf-unit">${esc(o.unit)}</span>`:''}
+      ${o.hint?`<span class="gf-hint">${o.hint}</span>`:''}
+    </span></div>`;
+}
+function gfSel(label, id, options, opts){
+  const o=opts||{};
+  const optsHTML=options.map(x=>`<option value="${esc(x[0])}" ${String(x[0])===String(o.value)?'selected':''}>${esc(x[1])}</option>`).join('');
+  return `<div class="gf ${o.req?'gf-req':''}">
+    <label class="gf-l" for="${id}">${esc(label)}${o.req?'<span class="gf-asterix">*</span>':''}</label>
+    <span class="gf-c"><select id="${id}" class="gf-i ${o.req?'req-field':''}">${optsHTML}</select>
+    ${o.hint?`<span class="gf-hint">${o.hint}</span>`:''}</span></div>`;
+}
+/* Read-only display field */
+function gfRO(label, value){
+  return `<div class="gf"><span class="gf-l">${esc(label)}</span><span class="gf-c"><span class="gf-ro">${esc(value)}</span></span></div>`;
+}
+
+/* Classic SAP grid (ALV-ish) with header bar */
+function guiGrid(headers, rows, opts){
+  const o=opts||{};
+  return `<div class="ggrid ${o.scroll?'scroll':''}"><table>
+    <thead><tr>${headers.map(h=>`<th ${h.w?`style="width:${h.w}"`:''}>${esc(h.label!=null?h.label:h)}</th>`).join('')}</tr></thead>
+    <tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c==null?'':c}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table></div>`;
+}
+/* Editable SAP grid cell */
+function gcell(id, opts){
+  const o=opts||{};
+  return `<input id="${id}" class="ggrid-i ${o.req?'req-field':''}" value="${esc(o.value!=null?o.value:'')}" ${o.type?`type="${o.type}"`:''} ${o.placeholder?`placeholder="${esc(o.placeholder)}"`:''} ${o.oninput?`oninput="${o.oninput}"`:''} ${o.ro?'readonly':''}>`;
+}
+
+/* Bottom-of-screen message line, like SAP's "No messages issued" row */
+function guiMessages(){
+  return `<div class="gmsgrow"><span class="gmsg-dot"></span><span id="sysResponse" class="gsys">No messages issued during check.</span></div>`;
+}
+
+/* F4 value-help hint (the little yellow box) */
+function guiHint(text){
+  return `<div class="gvaluehelp">💡 ${text}</div>`;
+}
+function toggleGuiTip(){
+  const el=$('guiTip'); if(el) el.classList.toggle('hidden');
+}
+function guiBack(){
+  if(state.view!=='sim'){ toast('🖥️ You are already at SAP Easy Access','info'); return; }
+  if(state.step>0) goStep(state.step-1);
+  else goHome();
+}
+function guiExit(){
+  if(state.view==='sim'){ setStatus('Transaction closed — back at SAP Easy Access.','info'); goHome(); }
+  else goHome();
+}
+function guiLogoff(){ goHome(); setStatus('Logoff from system PRD — you are back at SAP Easy Access.','info'); toast('🚪 Logged off (simulated)','info'); }
+function guiPrint(){ toast('🖨️ Print dialog — output device LOCL (spool 100234)','info'); setStatus('Print: output device LOCL selected.','info'); }
+function guiFind(){ if($('cmdInput')){ $('cmdInput').focus(); $('cmdInput').select(); } toast('🔎 Find — type a T-Code or app name','info'); }
+
+/* ---- SAP Easy Access (GUI home) ---- */
+function renderGuiHome(){
+  const is=(id)=>state.view==='sim'&&state.scenarioId===id;
+  const node=(label,tcode,sim,indent,opened)=>{
+    const st=sim?simStatus(sim):null;
+    const mark = st && st.cls==='done' ? ' <span class="gtree-ok">✔</span>' : '';
+    return `<div class="gtree-node l${indent} ${sim&&is(sim)?'active':''}" onclick="startScenario('${sim}')">
+      ${opened?'<span class="gtree-arrow">⊟</span>':'<span class="gtree-arrow">⊞</span>'}
+      <span class="gtree-ico">${opened?'📂':'📄'}</span>
+      <span class="gtree-lab">${esc(label)}</span>${mark}
+      ${tcode?`<span class="gtree-tc">${esc(tcode)}</span>`:''}</div>`;
+  };
+  const favRows = FAVORITES.map(f=>{
+    const st=simStatus(f.id);
+    return `<tr onclick="startScenario('${f.id}')" class="grow-link">
+      <td class="gtd-fav">${f.starred?'★ ':''}${esc(f.name)}</td>
+      <td class="gtd-tc">${f.tcode}</td>
+      <td class="gtd-st">${st.cls==='done'?'<span class="gtree-ok">✔ saved</span>':esc(st.label)}</td></tr>`;
+  }).join('');
+
+  const tree = `
+  <div class="geasy-access">
+    <div class="gtree-head"><span>📂</span> <b>SAP Easy Access</b><span class="gtree-spacer"></span><span class="gtree-fav">★ ${FAVORITES.length}</span></div>
+    <div class="gtree">
+      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Favorites</b></span></div>
+      ${FAVORITES.map(f=>`<div class="gtree-node l1" onclick="startScenario('${f.id}')"><span class="gtree-arrow">└</span><span class="gtree-ico">⭐</span><span class="gtree-lab">${f.starred?'★ ':''}${esc(f.name)}</span><span class="gtree-tc">${f.tcode}</span></div>`).join('')}
+      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Logistics</b></span></div>
+      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Materials Management</span></div>
+      <div class="gtree-node l2" onclick="startScenario('me21n')"><span class="gtree-arrow">└</span><span class="gtree-ico">📄</span><span class="gtree-lab">Purchasing</span><span class="gtree-tc">MM</span></div>
+      ${node('Create Purchase Order','ME21N','me21n',3)}
+      ${node('Display Purchase Order','ME23N','me23n',3)}
+      ${node('Create Purchase Requisition','ME51N','me51n',3)}
+      ${node('Display Purchase Requisition','ME53N','me53n',3)}
+      ${node('Service Entry Sheet','ML81N','ml81n',3)}
+      ${node('Goods Movement','MIGO','migo',3)}
+      ${node('* Output Processing for Matl Documents','MB90','output',3)}
+      ${node('Display Material Master','MM03','mm03',3)}
+      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Sales and Distribution</span></div>
+      ${node('Create Sales Order','VA01','va01',3)}
+      ${node('Display Sales Order','VA03','va03',3)}
+      <div class="gtree-node l0"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📁</span><span class="gtree-lab"><b>Accounting</b></span></div>
+      <div class="gtree-node l1"><span class="gtree-arrow">⊟</span><span class="gtree-ico">📂</span><span class="gtree-lab">Financial Accounting</span></div>
+      ${node('Enter G/L Account Document','FB50','fb50',3)}
+      ${node('G/L Line Item Display','FBL3N','fbl3n',3)}
+    </div>
+  </div>`;
+
+  const work = `
+  <div class="gworkarea">
+    ${guiTitle({line1:'SAP Easy Access', line2:'SAP Easy Access Menu'})}
+    <div class="gwork-cols">
+      <div class="gwork-main">
+        <div class="gmenu-title">SAP Easy Access</div>
+        <div class="gwork-list">
+          <div class="gwork-row" onclick="startScenario('me21n')"><span class="gwr-ico">🛒</span><span class="gwr-lab"><b>Create Purchase Order</b><small>ME21N · 5 steps · Procure-to-Pay</small></span><span class="gwr-tc">ME21N</span></div>
+          <div class="gwork-row" onclick="startScenario('va01')"><span class="gwr-ico">📦</span><span class="gwr-lab"><b>Create Sales Order</b><small>VA01 · 6 steps · Order-to-Cash</small></span><span class="gwr-tc">VA01</span></div>
+          <div class="gwork-row" onclick="startScenario('fb50')"><span class="gwr-ico">💼</span><span class="gwr-lab"><b>Enter G/L Account Document</b><small>FB50 · 5 steps · Finance</small></span><span class="gwr-tc">FB50</span></div>
+          <div class="gwork-sep">Favorites — pinned in this menu and in the tree</div>
+          ${FAVORITES.map(f=>`<div class="gwork-row" onclick="startScenario('${f.id}')"><span class="gwr-ico">${f.icon}</span><span class="gwr-lab"><b>${f.starred?'★ ':''}${esc(f.name)}</b><small>${esc(f.desc)}</small></span><span class="gwr-tc">${f.tcode}</span></div>`).join('')}
+        </div>
+        <div class="gvaluehelp" style="margin-top:10px">💡 <b>How to drive it like the real thing:</b> type a T-Code in the command field (top left) and press <b>Enter</b>, or double-click any node in the tree. The toolbar's <b>Back / Exit / Log off</b> icons work too.</div>
+      </div>
+      <div class="gwork-side">
+        <div class="gside-box"><div class="gside-head">My Documents</div>
+          ${state.documents.length ? `<table class="gside-table">${state.documents.slice(0,8).map(d=>`<tr onclick="startScenario('${d.scenarioId}')" class="grow-link"><td>${esc(d.type)}</td><td class="gtd-tc">${esc(d.number)}</td></tr>`).join('')}</table>` : `<div class="gside-empty">No documents yet — run a transaction and save.</div>`}
+        </div>
+        <div class="gside-box"><div class="gside-head">System Info</div>
+          <table class="gside-table">
+            <tr><td>System</td><td><b>PRD (1)</b></td></tr>
+            <tr><td>Client</td><td><b>100</b></td></tr>
+            <tr><td>User</td><td><b>ENTERPRISE_USER</b></td></tr>
+            <tr><td>Language</td><td><b>EN</b></td></tr>
+            <tr><td>Date</td><td><b>11/10/2026</b></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  return renderGuiShell(`
+    <div class="geasy-wrap">${tree}${work}</div>
+    <div class="gstatusarea">
+      <div class="gstatus-auto">Your Favorites (${FAVORITES.length})</div>
+      ${guiGrid(['Favorite','T-Code','Status'], FAVORITES.map(f=>{
+        const st=simStatus(f.id);
+        return [`<a onclick="startScenario('${f.id}')">★ ${esc(f.name)}</a>`, f.tcode, st.cls==='done'?'✔ '+esc(st.label):esc(st.label)];
+      }))}
+    </div>`,
+    {windowTitle:'SAP Easy Access', picture:{icon:'🖥️',line1:'SAP Easy Access',line2:'SAP Easy Access Menu'}});
+}
+
+/* ---- GUI screen for a transaction step ---- */
+const GUI_TABS = {
+  me21n:['Header','Item Overview','Delivery/Invoicing','Conditions','Account Assignment'],
+  va01:['Header','Item Overview','Order Header','Business Data'],
+  fb50:['Basic Data','Line Items','Tax'],
+  me23n:['Header','Item Overview','PO History','Status'],
+  ml81n:['Header 1','Header 2','Service Lines'],
+  output:['Selection','Output'],
+  migo:['Header','Item','Output'],
+  me51n:['Header','Item Overview','Requisition Notes'],
+  me53n:['Header','Item Overview','Release'],
+  mm03:['Basic Data','Sales','Purchasing'],
+  va03:['Header','Item Overview','Conditions'],
+  fbl3n:['Selection','Line Items'],
+};
+const GUI_TAB_BY_STEP = {
+  me21n:[0,0,1,1,1], va01:[0,0,0,1,1,1], fb50:[0,0,1,1,1], me23n:[0,1,1,3],
+  ml81n:[0,0,2,2], output:[0,0,1,1], migo:[0,0,1,1], me51n:[0,0,1,1],
+  me53n:[0,1,1,2], mm03:[0,0,0], va03:[0,1,1,1], fbl3n:[0,1,1],
+};
+const GUI_STEP_LABEL = {
+  me21n:['Initial Screen','Header Data','Item Overview','Check','Save'],
+  va01:['Initial Screen','Order Type','Order Header','Item Overview','Availability','Save'],
+  fb50:['Initial Screen','Document Header','Line Items','Balance','Post'],
+  me23n:['Command Field','Selection','Purchase Order'],
+  ml81n:['Command Field','Header','Service Lines','Save'],
+  output:['Command Field','Selection','Print Preview','Print'],
+  migo:['Command Field','Goods Receipt','Item Data','Post'],
+  me51n:['Command Field','Header','Item Overview','Save'],
+  me53n:['Command Field','Selection','Purchase Requisition'],
+  mm03:['Command Field','Selection','Material Master'],
+  va03:['Command Field','Selection','Sales Order'],
+  fbl3n:['Command Field','Selection','Line Items'],
+};
+
+/* Guided reference panel that keeps the wizard teaching intact, docked on the right like an SAP side panel */
+function guiGuidePanel(sc, step, idx){
+  const total=sc.steps.length;
+  const rows=sc.steps.map((s,i)=>{
+    const done=state.completed || (state.doneSteps.includes(i)&&i<state.step);
+    const cur=i===state.step && !state.completed;
+    return `<div class="gteam-step ${done?'done':''} ${cur?'cur':''}">
+      <span class="gts-n">${done?'✔':i+1}</span><span class="gts-t">${esc(GUI_STEP_LABEL[sc.id]&&GUI_STEP_LABEL[sc.id][i]||s.title)}</span></div>`;
+  }).join('');
+  return `<div class="gteam">
+    <div class="gteam-head">🎓 Guided Simulation</div>
+    <div class="gteam-sub">${esc(sc.tcode)} · ${esc(sc.title)}</div>
+    <div class="gteam-prog"><div style="width:${state.completed?100:Math.round(((idx)/Math.max(1,total-1))*100)}%"></div></div>
+    <div class="gteam-body">${rows}</div>
+    <div class="gteam-task"><b>Task ${idx+1} of ${total}</b><br>${step.desc||''}</div>
+    <ol class="gteam-instr"><li>${step.instruction||''}</li></ol>
+    <div class="gteam-actions">
+      <button class="gbtn" onclick="prevStep()" ${idx===0?'disabled':''}>◀ Back</button>
+      ${(step.autofill&&Object.keys(step.autofill).length)?`<button class="gbtn" onclick="autoFill()">💡 Fill values</button>`:''}
+      <button class="gbtn gbtn-enter" onclick="nextStep()">${idx===total-1?'✔ Finish':'Enter ▶'}</button>
+    </div>
+    <div class="gteam-foot">Switch to <b>✨ Fiori</b> at the top right — your step and entries stay.</div>
+  </div>`;
+}
+
+function renderGuiSim(){
+  const sc=SCENARIOS[state.scenarioId];
+  if(!sc) return renderGuiHome();
+  const step=sc.steps[state.step];
+  const allTabs=GUI_TABS[sc.id]||['Header','Items'];
+  const activeTab=Math.min((GUI_TAB_BY_STEP[sc.id]||[])[state.step]||0, allTabs.length-1);
+  // only show the tabs this transaction really opens during the guided steps (no dead tabs)
+  const tabs=allTabs.slice(0, Math.max(...(GUI_TAB_BY_STEP[sc.id]||[0]).concat([0]))+1);
+  const shownTab=Math.min(activeTab, tabs.length-1);
+
+  let screenBody;
+  if(state.completed){
+    screenBody = `
+      ${guiTcodeTitle(sc.tcode,'Display '+sc.docType)}
+      ${guiTabs(tabs, 0)}
+      <div class="gbox gbox-success">
+        <div class="gsuccess-ico">✔</div>
+        <div class="gsuccess-txt"><b>${esc(sc.docType)} ${esc(state.docNumber)} has been saved</b>
+        <p>${esc(sc.title)} completed in ${state.mode==='gui'?'SAP GUI (ECC)':'Fiori'}. The document is now in the database of client 100.</p></div>
+      </div>
+      ${guiGroup('Document', guiGrid(['Document','Type','Company / Org','Status'],[
+        [esc(state.docNumber), esc(sc.docType), esc(sc.module.replace('·','')), '✔ Posted / saved']]))}
+      ${guiMessages()}
+      <div class="gbtnrow">
+        <button class="gbtn gbtn-enter" onclick="goHome()">✔ Continue</button>
+        <button class="gbtn" onclick="resetScenario()">🔄 Restart ${sc.tcode}</button>
+        <button class="gbtn" onclick="setMode('fiori')">✨ View in Fiori</button>
+      </div>`;
+  } else {
+    const hasAuto = step.autofill && Object.keys(step.autofill).length>0;
+    screenBody = `
+      ${guiTcodeTitle(sc.tcode, step.title)}
+      ${guiTabs(tabs, shownTab)}
+      <div class="gscreen-scroll">
+        <div class="ginstr"><b>📌 What to do:</b> ${step.instruction}</div>
+        ${step.body()}
+        ${guiMessages()}
+        <div class="gbtnrow">
+          <button class="gbtn" onclick="prevStep()" ${state.step===0?'disabled':''}>◀ Back</button>
+          ${hasAuto?`<button class="gbtn" onclick="autoFill()">💡 Fill values</button>`:''}
+          ${step.primary?`<button class="gbtn gbtn-enter" onclick="runAction('${step.primary.handler}')">${step.primary.label}</button>`:''}
+          <span class="gbtn-spacer"></span>
+          <button class="gbtn gbtn-enter" onclick="nextStep()">${state.step===sc.steps.length-1?'✔ Finish':'Enter ▶'}</button>
+        </div>
+      </div>`;
+  }
+
+  return renderGuiShell(`
+    <div class="gsim-wrap">
+      <div class="gsim-screen">${guiScreen(screenBody)}</div>
+      ${guiGuidePanel(sc, step, state.step)}
+    </div>`,
+    {windowTitle:`${sc.tcode} — ${sc.title}`, transaction:{tcode:sc.tcode, parent:sc.module.split('·')[1]?sc.module.split('·')[1].trim():'SAP'}});
+}
 
 /* Fiori launchpad tile shown instead of the T-Code command field when in Fiori mode */
 function fioriTileBody(sc){
@@ -1057,7 +1495,7 @@ function updateClock(){
   const hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0'), ss=String(now.getSeconds()).padStart(2,'0');
   el.textContent=`📅 ${m}/${d}/${y} · 🕐 ${hh}:${mm}:${ss}`;
 }
-setInterval(updateClock,1000);
+setInterval(()=>{ updateClock(); refreshStatusClock(); },1000);
 
 /* ================= KEYBOARD SHORTCUTS ================= */
 document.addEventListener('keydown',e=>{
