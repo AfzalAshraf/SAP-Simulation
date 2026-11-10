@@ -13,9 +13,17 @@ folder) and start typing T-Codes.
 
 | | SAP GUI (ECC) | SAP Fiori (S/4HANA) |
 |---|---|---|
-| Look | Classic Easy Access, dark header, SAP Menu tree | Launchpad, white tiles, app names instead of T-Codes |
-| Navigate | Command field + T-Codes | Search field + app tiles |
+| Look | **SAP GUI for Windows** — window chrome, SAP menubar, icon toolbar, tabstrip, framed field groups, ALV grids | Launchpad, white tiles, app names instead of T-Codes |
+| Navigate | Command field + T-Codes + SAP Easy Access tree | Search field + app tiles |
+| Home | SAP Easy Access menu (Logistics / Accounting / Favorites tree) | Launchpad home with cards |
+| Screens | Title row + tabstrip that advances per step (Header → Item Overview, Basic Data → Line Items…) and the bottom message line | Step cards with the guided checklist |
 | Data | Same documents, same steps, same entries | Same documents, same steps, same entries |
+
+The GUI window keeps the full desktop furniture on **every** screen: title bar,
+`SAP Easy Access / SAP Business Workplace / …` menu, the classic labelled icon
+toolbar (Back, Exit, Log off, Print, Find, Clock, Enter), the command field, a
+status bar with system / client / language / time / user, and the SAP message
+line under each screen where Check and Save results appear.
 
 The toggle in the top bar switches instantly — **your current step and every
 field you already typed stay exactly as they were**.
@@ -62,6 +70,9 @@ Also clickable from the Quick Guide: `MM03` (material master), `MIGO`, `VA03`
 ## ✨ Features
 
 - **1-click GUI ⇄ Fiori toggle** — the same step, same entries, same documents.
+- **SAP GUI for Windows fidelity** — window chrome, menubar, icon toolbar,
+  command field, tabstrip, framed field groups, ALV grids, status bar and the
+  screen message line, on the home screen and every transaction step.
 - **Command field / Fiori search** — type a T-Code (`ME21N`, `VA01`, `FB50`,
   `MIGO`, `/N`…) or an app name ("create purchase requisition", "print material
   document") and it routes you to the right app.
@@ -73,7 +84,8 @@ Also clickable from the Quick Guide: `MM03` (material master), `MIGO`, `VA03`
 - **My Documents** — every saved document lands on the home screen with a
   link to the matching Display transaction; persisted in `localStorage`.
 - **Keyboard shortcuts** — `Ctrl/⌘ + S` = Save/Post on the current step,
-  `F2` = flip between SAP GUI and Fiori.
+  `F2` = flip between SAP GUI and Fiori. The GUI toolbar's `Enter`, `Back`,
+  `Exit` and `Log off` icons drive the wizard the way the real client does.
 - **Deep links** — `#me21n`, `#va01`, `#migo`, `#fiori` open the app directly.
 - **Responsive** — usable on a laptop or a phone (Favorites stay pinned).
 
